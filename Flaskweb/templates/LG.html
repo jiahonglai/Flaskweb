@@ -1,0 +1,573 @@
+<!DOCTYPE HTML>
+
+<html>
+
+<head>
+    <title>CyberMap</title>
+    <link rel="icon" href="../static/images/logo_r.png" sizes="32x32">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <link rel="stylesheet" href="../static/assets/css/main.css" />
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
+        integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+    <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link rel="stylesheet"
+        href="../static/assets/css/style.min.c6820b4246dfb1fd50de50da104b15fa21b578b488678df9f6f9911de5b6bfac.css" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+        integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <link rel="stylesheet" href="../static/assets/css/my.css" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"
+        integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+    <link type="text/css" rel="stylesheet" href="https://api.mqcdn.com/sdk/mapquest-js/v1.3.2/mapquest.css" />
+
+    <style>
+        /*表格颜色*/
+        .table-striped>tbody>tr:nth-child(odd)>td,
+        .table-striped>tbody>tr:nth-child(odd)>th {
+            background-color: rgba(244, 236, 253, 0.5);
+        }
+
+        .button::-moz-focus-inner {
+            border: 0;
+            padding: 0;
+        }
+
+        .button {
+            display: inline-block;
+            *display: inline;
+            zoom: 1;
+            padding: 6px 20px;
+            margin: 0;
+            cursor: pointer;
+            border: 1px solid #bbb;
+            overflow: visible;
+            font: bold 13px arial, helvetica, sans-serif;
+            text-decoration: none;
+            white-space: nowrap;
+            color: #555;
+
+            background-color: #ddd;
+            background-image: -webkit-gradient(linear, left top, left bottom, from(rgba(255, 255, 255, 1)), to(rgba(255, 255, 255, 0)));
+            background-image: -webkit-linear-gradient(top, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0));
+            background-image: -moz-linear-gradient(top, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0));
+            background-image: -ms-linear-gradient(top, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0));
+            background-image: -o-linear-gradient(top, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0));
+            background-image: linear-gradient(top, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0));
+
+            -webkit-transition: background-color .2s ease-out;
+            -moz-transition: background-color .2s ease-out;
+            -ms-transition: background-color .2s ease-out;
+            -o-transition: background-color .2s ease-out;
+            transition: background-color .2s ease-out;
+            background-clip: padding-box;
+            /* Fix bleeding */
+            -moz-border-radius: 3px;
+            -webkit-border-radius: 3px;
+            border-radius: 3px;
+            -moz-box-shadow: 0 1px 0 rgba(0, 0, 0, .3), 0 2px 2px -1px rgba(0, 0, 0, .5), 0 1px 0 rgba(255, 255, 255, .3) inset;
+            -webkit-box-shadow: 0 1px 0 rgba(0, 0, 0, .3), 0 2px 2px -1px rgba(0, 0, 0, .5), 0 1px 0 rgba(255, 255, 255, .3) inset;
+            box-shadow: 0 1px 0 rgba(0, 0, 0, .3), 0 2px 2px -1px rgba(0, 0, 0, .5), 0 1px 0 rgba(255, 255, 255, .3) inset;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, .9);
+
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        .button:hover {
+            background-color: #eee;
+            color: #555;
+        }
+
+        .button:active {
+            background: #e9e9e9;
+            position: relative;
+            top: 1px;
+            text-shadow: none;
+            -moz-box-shadow: 0 1px 1px rgba(0, 0, 0, .3) inset;
+            -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, .3) inset;
+            box-shadow: 0 1px 1px rgba(0, 0, 0, .3) inset;
+        }
+
+        .button[disabled],
+        .button[disabled]:hover,
+        .button[disabled]:active {
+            border-color: #eaeaea;
+            background: #fafafa;
+            cursor: default;
+            position: static;
+            color: #999;
+            /* Usually, !important should be avoided but here it's really needed :) */
+            -moz-box-shadow: none !important;
+            -webkit-box-shadow: none !important;
+            box-shadow: none !important;
+            text-shadow: none !important;
+        }
+
+        /* Smaller buttons styles */
+
+        .button.small {
+            padding: 4px 12px;
+        }
+    </style>
+
+</head>
+
+
+<body style="overflow: auto">
+
+    <!-- 模态框 -->
+    <div class="modal fade" id="prompt" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <h3>正在加载，请稍等...</h3>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" onclick="closePrompt()" class="btn btn-primary">
+                        确定
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <!-- Nav -->
+        <nav_header id="nav_header" :nav_items="nav_items"></nav_header>
+
+        <div id="map" style="margin-top: 2%; margin-left:12%; width: 1000px;height: 450px"></div>
+        <!-- Main -->
+        <div class="container pt-2 pt-md-3 pb-3 pb-md-6">
+
+            <div class="row">
+
+                <div class="col-12 order-12 col-lg-9 col-xxl-10">
+
+                    <div class="content">
+                        <!-- Content -->
+                        <div class="container" style="margin-top: 2%">
+
+                            <table class="table table-striped table-responsive table-hover table-condensed"
+                                style="word-break: break-word;width: 1100px">
+
+                                <div style="float: left">
+                                    <span style="float: left;line-height: 200%;font-size: 15px">命令&nbsp</span>
+                                    <select class="form-control"
+                                        style="width: 120px; appearance: auto; margin-bottom: 30px" id="cmdValue"
+                                        onchange="getPageNum()">
+                                        <option value="All">All</option>
+                                        <option value="ping">ping</option>
+                                        <option value="traceroute">traceroute</option>
+                                        <option value="bgp">show bgp routes</option>
+                                    </select>
+                                </div>
+                                <div style="float: left;margin-left: 2%">
+                                    <span style="float: left;line-height: 200%;font-size: 15px">区域&nbsp</span>
+                                    <select class="form-control"
+                                        style="width: 100px; appearance: auto; margin-bottom: 30px" id="area"
+                                        onchange="getPageNum();changeCenter()">
+                                        <option value="All">All</option>
+                                        <option value="Asia">亚洲</option>
+                                        <option value="Europe">欧洲</option>
+                                        <option value="America">美洲</option>
+                                        <option value="Africa">非洲</option>
+                                        <option value="Oceania">大洋洲</option>
+                                    </select>
+                                </div>
+                                <div style="float: left; margin-left: 2%">
+                                    <span style="float: left;line-height: 200%;font-size: 15px">国家&nbsp</span>
+                                    <select class="form-control"
+                                        style="width: 100px; appearance: auto; margin-bottom: 30px" id="country"
+                                        onchange="getPageNum()">
+                                        <option value="All">All</option>
+                                    </select>
+                                </div>
+                                <div style="float: left; margin-left: 2%">
+                                    <span style="float: left;line-height: 200%;font-size: 15px">状态&nbsp</span>
+                                    <select class="form-control"
+                                        style="width: 100px; appearance: auto; margin-bottom: 30px" id="state"
+                                        onchange="getPageNum()">
+                                        <option value="All">All</option>
+                                        <option value="active">活跃</option>
+                                        <option value="inactive">不活跃</option>
+                                    </select>
+                                </div>
+
+                                <thead>
+                                    <tr>
+                                        <th style="width: 15%; text-align: center; font-family: 黑体; font-size: 16px">URL
+                                        </th>
+                                        <th style="width: 10%; text-align: center; font-family: 黑体; font-size: 16px">测量点
+                                        </th>
+                                        <th style="width: 5%; text-align: center; font-family: 黑体; font-size: 16px">AS
+                                        </th>
+                                        <th style="width: 8%; text-align: center; font-family: 黑体; font-size: 16px">
+                                            国家</th>
+                                        <th style="width: 8%; text-align: center; font-family: 黑体; font-size: 16px">
+                                            城市</th>
+                                        <th style="width: 5%; text-align: center; font-family: 黑体; font-size: 16px">
+                                            状态</th>
+                                        <th style="width: 10%; text-align: left; font-family: 黑体; font-size: 16px">
+                                            &nbsp&nbsp命令类型</th>
+                                        <th style="width: 5%; text-align: center; font-family: 黑体; font-size: 16px">
+                                            格式</th>
+                                        <th style="width: 20%; text-align: left; font-family: 黑体; font-size: 16px">
+                                            &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp参数</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody id="info">
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+            <div class="pull-right">
+                <span style="font-size: 16px;vertical-align: -30%">
+                    共<strong id="totalPage"></strong>页&nbsp&nbsp&nbsp
+                </span>
+                <ul class="pagination" id="pagination">
+
+                </ul>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="d-print-none ">
+            <div class="sub-footer ">
+                <div class="container ">
+                    <div class="row ">
+                        <div class="col-2 " id="userpreferences ">
+
+                        </div>
+                        <div class="col-8 ">
+                            <div class="sub-footer-inner ">
+                                <ul>
+                                    <li>Copyright ©2020-2025 Institute for Network Sciences and Cyberspace All Rights
+                                        Reserved.
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </footer>
+
+
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.staticfile.org/vue/2.2.2/vue.min.js"></script>
+    <script src="../static/assets/js/browser.min.js "></script>
+    <script src="../static/assets/js/breakpoints.min.js "></script>
+    <script src="../static/assets/js/util.js "></script>
+    <script src="../static/assets/js/main.js "></script>
+    <script
+        src="../static/assets/js/frontpage.min.1189bd79a1f4db78276ee2cd45c1cd9b3a14ef14963341d3ec0f96ecddf56478.js ">
+        </script>
+    <script src="../static/assets/js/global.min.bca3c47a1bcb7341823d522f2aaac338660e989b4ffe85fb6f643dbb86731feb.js ">
+    </script>
+    <script src="../static/assets/js/nav_header.js "></script>
+    <script src="https://api.mqcdn.com/sdk/mapquest-js/v1.3.2/mapquest.js"></script>
+
+    <script type="text/javascript">
+        let pageNum;
+        let filePath;
+
+        window.onload = function () {
+            initMap();
+            getPageNum();
+        }
+
+        function getPageNum() {
+            let cmdValue = document.getElementById("cmdValue");
+            cmdValue = cmdValue.options[cmdValue.selectedIndex].value;
+            let area = document.getElementById("area");
+            area = area.options[area.selectedIndex].value;
+            let country = document.getElementById("country");
+            country = country.options[country.selectedIndex].value;
+            let state = document.getElementById("state");
+            state = state.options[state.selectedIndex].value;
+            $.ajax({
+                url: "/api/pagenum",
+                type: "POST",
+                dateType: "json",
+                data: {
+                    data: JSON.stringify({
+                        "cmdValue": cmdValue,
+                        "area": area,
+                        "country": country,
+                        "state": state
+                    })
+                },
+                success: function (result) {
+                    pageNum = result;
+                    $("#totalPage").html(pageNum);
+                    showPage(1);
+                },
+                error: function () {
+                    alert("获取页数失败");
+                }
+            });
+        }
+
+        function showInfo(page) {
+            let cmdValue = document.getElementById("cmdValue");
+            cmdValue = cmdValue.options[cmdValue.selectedIndex].value;
+            let area = document.getElementById("area");
+            area = area.options[area.selectedIndex].value;
+            let country = document.getElementById("country");
+            country = country.options[country.selectedIndex].value;
+            let state = document.getElementById("state");
+            state = state.options[state.selectedIndex].value;
+            $.ajax({
+                url: "/api/page",
+                type: "POST",
+                data: {
+                    data: JSON.stringify({
+                        "cmdValue": cmdValue,
+                        "area": area,
+                        "country": country,
+                        "state": state,
+                        "page": page
+                    })
+                },
+                success: function (result) {
+                    let msg = "";
+                    for (let index in result) {
+                        let record = result[index];
+                        msg += "<tr>";
+                        let IP = record['URL'].split("http://");
+                        if (IP.length == 1) {
+                            IP = record['URL'].split("https://");
+                        }
+                        IP = IP[1];
+                        msg += "<td style='text-align: center'>" + "<a href='" + record['URL'] + "'>" + IP +
+                            "</a></td>";
+                        msg += "<td style='text-align: center'>" + record['routerValue'] + "</td>";
+                        msg += "<td style='text-align: center'>" + record['AS'] + "</td>";
+                        msg += "<td style='text-align: center'>" + record['area'] + "</td>";
+                        msg += "<td style='text-align: center'>" + record['country'] + "</td>";
+                        msg +=
+                            "<td style='text-align: center'><img src='static/images/tick.png' width='50px' alt='√'></td>";
+                        msg += "<td style='text-align: center'>";
+                        msg += "<select class=\"form-control\" style=\"width: 100px; height: 30px;" +
+                            "appearance: auto; margin-bottom: 30px\"\n" +
+                            " id='cmdValue" + record['URL'] + "|" + record['routerValue'] + "'>\n";
+                        for (let index in record["cmdValue"]) {
+                            let cmd = record["cmdValue"][index];
+                            msg += "<option value=" + cmd + ">" + cmd + "</option>\n";
+                        }
+                        msg += "</select></td>";
+                        msg += "<td style='text-align: center'>";
+                        msg += "<select class=\"form-control\" style=\"width: 80px; height: 30px;" +
+                            "appearance: auto; margin-bottom: 30px\"\n" +
+                            " id='type" + record['URL'] + "|" + record['routerValue'] + "'>\n";
+                        msg += "<option value='raw'>raw</option>\n";
+                        msg += "<option value='json'>json</option>\n";
+                        msg += "</select></td>";
+                        msg +=
+                            "<td style='text-align: center'><input type=\"text\" class=\"form-control required\" " +
+                            " style='width: 150px;height: 30px;float: left'" +
+                            "id='parameter" + record['URL'] + "|" + record['routerValue'] +
+                            "'autofocus=\"autofocus\">"
+                        msg += "<button onclick='query(\"" + record['URL'] + "|" +
+                            record['routerValue'] + "\")'" +
+                            " class='small button' style='width: auto;height: 30px;" +
+                            "float: left;margin-left: 25px'>查询</button></td>";
+                        msg += "</tr>";
+                    }
+                    $("#info").html(msg);
+                },
+                error: function () {
+                    alert("获取搜索数据失败");
+                }
+            });
+        }
+
+        function query(key) {
+            let cmdValue = document.getElementById("cmdValue" + key);
+            cmdValue = cmdValue.options[cmdValue.selectedIndex].value;
+            let parameter = document.getElementById("parameter" + key).value;
+            let type = document.getElementById("type" + key).value;
+            $.ajax({
+                type: "POST",
+                url: "/api/query",
+                data: {
+                    data: JSON.stringify({
+                        "key": key,
+                        "cmdValue": cmdValue,
+                        "parameter": parameter,
+                        "type": type,
+                        "showHtml": "True",
+                    })
+                },
+                dataType: "json",
+                beforeSend: function () {
+                    $('#prompt').modal('show');
+                },
+                success: function (response) {
+                    $('#prompt').modal('hide');
+                    window.open(response);
+                },
+                error: function () {
+                    alert("查询失败");
+                }
+            });
+        }
+
+        function closePrompt() {
+            $('#prompt').modal('hide');
+        }
+
+        function showPage(page) {
+            let htmlText = "<li onclick='showPage(1)'><a href=\"#\"> << </a></li>";
+            let prePage = Math.max(page - 1, 1);
+            htmlText += "<li onclick='showPage(" + prePage + ")'><a href=\"#\"> < </a></li>";
+            if (pageNum < 5) {
+                for (let i = 1; i <= pageNum; ++i) {
+                    htmlText += "<li onclick='showPage(" + i + ")' ";
+                    if (i == page) htmlText += "class='active'";
+                    htmlText += "><a href=\"#\">" + i + "</a></li>";
+                }
+            } else {
+                let leftNum = page - 1;
+                if (leftNum < 2) {
+                    for (let i = 1; i <= 5; ++i) {
+                        htmlText += "<li onclick='showPage(" + i + ")' ";
+                        if (i == page) htmlText += "class='active'";
+                        htmlText += "><a href=\"#\">" + i + "</a></li>";
+                    }
+                }
+                let rightNum = pageNum - page;
+                if (rightNum < 2) {
+                    for (let i = pageNum - 4; i <= pageNum; ++i) {
+                        htmlText += "<li onclick='showPage(" + i + ")' ";
+                        if (i == page) htmlText += "class='active'";
+                        htmlText += "><a href=\"#\">" + i + "</a></li>";
+                    }
+                }
+                if (leftNum > 1 && rightNum > 1) {
+                    for (let i = page - 2; i <= page + 2; ++i) {
+                        htmlText += "<li onclick='showPage(" + i + ")' ";
+                        if (i == page) htmlText += "class='active'";
+                        htmlText += "><a href=\"#\">" + i + "</a></li>";
+                    }
+                }
+            }
+            let nextPage = Math.min(page + 1, pageNum);
+            htmlText += "<li onclick='showPage(" + nextPage + ")'><a href=\"#\"> > </a></li>";
+            htmlText += "<li onclick='showPage(" + pageNum + ")'><a href=\"#\"> >> </a></li>";
+            $("#pagination").html(htmlText);
+            showInfo(page);
+        }
+
+        function listCountry() {
+            $.getJSON({
+                url: filePath,
+                type: "GET",
+                dataType: "json",
+                success: function (data) {
+                    let countryList = [];
+                    let countryOption = document.getElementById("country");
+                    for (let i in data) {
+                        let item = data[i];
+                        for (let j in item["VP"]) {
+                            let country = item["VP"][j][2];
+                            if (countryList.indexOf(country) == -1) {
+                                let option = document.createElement("option");
+                                option.value = country;
+                                option.text = country;
+                                countryOption.options.add(option);
+                                countryList.push(country);
+                            }
+                        }
+                    }
+                },
+                error: function () {
+                    alert("数据加载出错！");
+                }
+            });
+        }
+
+        let map;
+        let markers = [];
+
+        function initMap() {
+            L.mapquest.key = 'lYrP4vF3Uk5zgTiGGuEzQGwGIVDGuy24';
+            map = L.mapquest.map('map', {
+                center: [25, 10],
+                layers: L.mapquest.tileLayer('map'),
+                zoom: 2
+            });
+            map.addControl(L.mapquest.control());
+        }
+
+        function showMap() {
+            $.getJSON({
+                url: filePath,
+                type: "GET",
+                dataType: "json",
+                success: function (data) {
+                    if (markers.length > 0) { //清除之前的标记点
+                        for (let i in markers) map.removeLayer(markers[i]);
+                        markers = [];
+                    }
+                    for (let i in data) {
+                        let item = data[i];
+                        for (let j in item["VP"]) {
+                            let x = item["VP"][j][4];
+                            let y = item["VP"][j][5];
+                            let marker = new L.mapquest.textMarker([x, y], {
+                                type: 'marker',
+                                icon: {
+                                    primaryColor: '#a368b0',
+                                    secondaryColor: '#861f9f',
+                                    size: 'sm'
+                                }
+                            }).addTo(map);
+                            markers.push(marker);
+                        }
+                    }
+                },
+                error: function () {
+                    alert("数据加载出错！");
+                }
+            });
+        }
+
+
+        function changeCenter() {
+            let areaName = ["ALL", "Asia", "Europe", "America", "Africa", "Oceania"];
+            let areaCenter = [
+                [25, 10, 2],
+                [30, 100, 3],
+                [50, 15, 4],
+                [20, -75, 3],
+                [0, 10, 3],
+                [-30, 140, 4]
+            ];
+            let area = document.getElementById("area");
+            area = area.options[area.selectedIndex].value;
+            area = areaName.indexOf(area);
+            map.setView([areaCenter[area][0], areaCenter[area][1]], areaCenter[area][2]);
+        }
+    </script>
+
+</body>
+
+</html>

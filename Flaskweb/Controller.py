@@ -17,31 +17,14 @@ app = Flask(__name__)
 pageSize = 30  # 一页显示30条记录
 
 
-def hello():
-    info = {}
-    with shelve.open("test") as db:
-        for i in db:
-            tmp = i.split('|')
-            info['url'] = tmp[0]
-            info['routerValue'] = tmp[1]
-            cmdValue = []
-            for j in db[i]['cmdValue']:
-                cmdValue.append(j)
-            print(cmdValue)
-            info['cmdValue'] = cmdValue
-            break
-
-    return jsonify(info)
-
-
 @app.route("/")
 def getLGpage():
     return render_template("LG.html")
 
 
-@app.route("/tmp/<number>")
-def getTmpHtml(number):
-    return render_template(number + ".html")
+@app.route("/result/<time>")
+def getTmpHtml(time):
+    return render_template("/result/" + time + ".html")
 
 
 @app.route("/api/pagenum", methods=["POST"])
@@ -329,10 +312,10 @@ def query():
                 content = tracerouteParser.parse(api.resp)
 
         if (data['showHtml'] == "True"):
-            with open("./templates/" + queryTime + ".html", "w") as f:
+            with open("./templates/result/" + queryTime + ".html", "w") as f:
                 f.write(content)
 
-            return jsonify("/tmp/" + queryTime)
+            return jsonify("/result/" + queryTime)
         else:
             return content
 
