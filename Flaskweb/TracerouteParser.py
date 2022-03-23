@@ -74,6 +74,15 @@ class TracerouteHTMLParser:
         doc = re.sub('(?<= )[0-9]+\.[0-9](?= [0-9])', '', doc)
         doc = re.sub(r'  +', ' ', doc)
 
+        #处理形如1 IP 1 IP的情况
+        firstIndex = re.search(" 1 ", doc)
+        if (firstIndex != None):
+            firstIndex = firstIndex.start()
+            secondIndex = re.search(" 1 ", doc[firstIndex + 1:])
+            if (secondIndex != None):
+                secondIndex = secondIndex.start()
+                doc = doc[firstIndex + secondIndex + 1:]
+
         return doc
 
     @staticmethod

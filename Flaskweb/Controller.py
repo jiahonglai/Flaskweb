@@ -317,7 +317,7 @@ def query():
         if (data['showHtml'] == "True"):
             filePath = "./templates/result/" + queryDate
             if (not os.path.exists(filePath)):
-                os.makedirs(filePath)
+                os.mkdir(filePath)
             with open(filePath + "/" + queryTime + ".html", "w") as f:
                 f.write(str(content))
 
