@@ -1,5 +1,6 @@
 import json
 import re
+from urllib import response
 
 ipv4Regex = '\\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\b'
 
@@ -98,7 +99,8 @@ class TracerouteHTMLParser:
         regex_unit = " (?:ms|msec|IP|rtt| |(?<= )[0-9]+(?= )|\*)+"
         regex = ""
         hops = []
-        for i in range(1, 8):  # get max hopnum, 限制到8跳
+
+        for i in range(1, 30):  # get max hopnum, 限制到30跳
             regex += '((?<= )' + str(
                 i) + '(?= )' + regex_unit + ') '  # tail is a blank
             result = re.findall(regex, doc, re.IGNORECASE)
@@ -106,26 +108,46 @@ class TracerouteHTMLParser:
                 break
             else:
                 hops = result[0]
+
         matchPart = ' '.join(hops)
         forwardLength = doc.find(matchPart)
         forwardContent = doc[:forwardLength]
         IPIndex = forwardContent.count('IP')
         rttIndex = forwardContent.count('rtt')
-        recoverHops = []
+        result = {"hops": []}
 
         for hop in hops:
             replacedSegs = hop.split()
-            recoverSegs = []
+            lastSegIsIP = False
+            IP = ""
+            record = {"hop": "", "response": []}
+            resp = {}
             for seg in replacedSegs:
                 if 'IP' == seg:
-                    seg = originalIPs[IPIndex]
+                    if (lastSegIsIP):
+                        IPIndex += 1
+                        continue
+                    IP = originalIPs[IPIndex]
                     IPIndex += 1
+                    lastSegIsIP = True
                 elif 'rtt' == seg:
-                    seg = originalRtts[rttIndex]
+                    resp['from'] = IP
+                    resp['rtt'] = originalRtts[rttIndex]
                     rttIndex += 1
-                recoverSegs.append(seg)
-            recoverHops.append(' '.join(recoverSegs))
-        return TracerouteHTMLParser.hops2str(recoverHops)
+                    lastSegIsIP = False
+                elif '*' == seg:
+                    resp['from'] = '*'
+                    record['response'].append(resp)
+                    resp = {}
+                elif 'ms' == seg:
+                    resp['rtt'] += ' ms'
+                    record['response'].append(resp)
+                    resp = {}
+                else:
+                    record['hop'] = seg
+
+            result['hops'].append(record)
+        return result
 
     @staticmethod
     def postClean(ret):
@@ -135,8 +157,8 @@ class TracerouteHTMLParser:
         return ret
 
     @staticmethod
-    def hops2str(hops):
-        ret = ''
+    def hops2json(hops):
+        ret = ""
         for hop in hops:
             ret += hop + '|'
         return TracerouteHTMLParser.postClean(ret)
@@ -192,21 +214,45 @@ class TracerouteJsonParser:
     def parse(doc):
         lines = TracerouteJsonParser.splitDoc(doc)
         linesNum = len(lines)
-        startIndex, maxNum = 0, 0
         for i in range(linesNum):
-            hopNum = 1
-            if len(lines[i]) >= 2 and lines[i].split()[0] == str(hopNum):
-                for j in range(i + 1, linesNum):
-                    hopNum += 1
-                    if len(lines[j]) <= 2 or lines[j].split()[0] != str(
-                            hopNum):
-                        break
-                    else:
-                        if hopNum > maxNum:
-                            startIndex = i
-                            maxNum = hopNum
-        matchLines = lines[startIndex:startIndex + maxNum]
-        return '|'.join(matchLines)
+            if (len(lines[i]) >= 2 and lines[i].split()[0] == '1'):
+                if (i == linesNum - 1 or (len(lines[i + 1]) >= 2
+                                          and lines[i + 1].split()[0] == '2')):
+                    lines = lines[i:]
+                    break
+
+        result = {"hops": []}
+        for line in lines:
+            if (line == ''):
+                continue
+            replacedSegs = line.split()
+            lastSegIsIP = False
+            IP = ""
+            record = {"hop": "", "response": []}
+            record['hop'] = replacedSegs[0]
+            replacedSegs = replacedSegs[1:]
+            resp = {}
+            for seg in replacedSegs:
+                if (len(seg) > 6): #认为是IP
+                    if (lastSegIsIP):
+                        continue
+                    IP = seg
+                    lastSegIsIP = True
+                elif '*' == seg:
+                    resp['from'] = '*'
+                    record['response'].append(resp)
+                    resp = {}
+                elif 'ms' == seg:
+                    resp['rtt'] += ' ms'
+                    record['response'].append(resp)
+                    resp = {}
+                else:
+                    resp['from'] = IP
+                    resp['rtt'] = seg
+                    lastSegIsIP = False
+
+            result['hops'].append(record)
+        return result
 
 
 class TracerouteParser:

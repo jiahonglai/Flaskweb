@@ -1,3 +1,4 @@
+from concurrent.futures import thread
 from flask import Flask, request, jsonify, json
 from flask import render_template
 from gevent import pywsgi
@@ -313,7 +314,7 @@ def query():
 
         if (data['showHtml'] == "True"):
             with open("./templates/result/" + queryTime + ".html", "w") as f:
-                f.write(content)
+                f.write(str(content))
 
             return jsonify("/result/" + queryTime)
         else:
