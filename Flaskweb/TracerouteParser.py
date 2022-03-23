@@ -73,6 +73,7 @@ class TracerouteHTMLParser:
         doc = ' '.join(segs[:tail + 1])
         doc = re.sub('(?<= )[0-9]+\.[0-9](?= [0-9])', '', doc)
         doc = re.sub(r'  +', ' ', doc)
+
         return doc
 
     @staticmethod
@@ -96,7 +97,7 @@ class TracerouteHTMLParser:
         doc = re.sub(ipv4Regex, 'IP', doc)
         doc = re.sub('[0-9]+\.[0-9]+(?= ms)', 'rtt', doc)
         doc = ' ' + doc + ' '  # append last hop blank
-        regex_unit = " (?:ms|msec|IP|rtt| |(?<= )[0-9]+(?= )|\*)+"
+        regex_unit = " (?:ms|msec|IP|rtt| |\*)+"
         regex = ""
         hops = []
 
@@ -229,11 +230,13 @@ class TracerouteJsonParser:
             lastSegIsIP = False
             IP = ""
             record = {"hop": "", "response": []}
+            if (replacedSegs[0] == "0"):
+                break
             record['hop'] = replacedSegs[0]
             replacedSegs = replacedSegs[1:]
             resp = {}
             for seg in replacedSegs:
-                if (len(seg) > 6): #认为是IP
+                if (len(seg) > 6):  #认为是IP
                     if (lastSegIsIP):
                         continue
                     IP = seg

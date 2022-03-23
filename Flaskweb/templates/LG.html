@@ -303,7 +303,7 @@
             let state = document.getElementById("state");
             state = state.options[state.selectedIndex].value;
             $.ajax({
-                url: "/api/pagenum",
+                url: "/pagenum",
                 type: "POST",
                 dateType: "json",
                 data: {
@@ -335,7 +335,7 @@
             let state = document.getElementById("state");
             state = state.options[state.selectedIndex].value;
             $.ajax({
-                url: "/api/page",
+                url: "/page",
                 type: "POST",
                 data: {
                     data: JSON.stringify({

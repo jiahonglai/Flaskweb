@@ -3,6 +3,7 @@ from flask import Flask, request, jsonify, json
 from flask import render_template
 from gevent import pywsgi
 import shelve
+import os
 import urllib3
 
 urllib3.disable_warnings()
@@ -23,12 +24,12 @@ def getLGpage():
     return render_template("LG.html")
 
 
-@app.route("/result/<time>")
-def getTmpHtml(time):
-    return render_template("/result/" + time + ".html")
+@app.route("/result/<date>/<time>")
+def getTmpHtml(date, time):
+    return render_template("/result/" + date + "/" + time + ".html")
 
 
-@app.route("/api/pagenum", methods=["POST"])
+@app.route("/pagenum", methods=["POST"])
 def getPageNum():
     data = json.loads(request.form.get('data'))
     conditions = ['cmdValue', 'area', 'country', 'state']
@@ -57,7 +58,7 @@ def getPageNum():
         return str(pageNum)
 
 
-@app.route("/api/page", methods=["POST"])
+@app.route("/page", methods=["POST"])
 def getPage():
     data = json.loads(request.form.get('data'))
     conditions = ['cmdValue', 'area', 'country', 'state']
@@ -277,7 +278,8 @@ class API:
 
 @app.route("/api/query", methods=["POST"])
 def query():
-    queryTime = str(datetime.datetime.now())
+    queryDate = str(datetime.date.today())
+    queryTime = str(datetime.datetime.now())[11:]
     data = json.loads(request.form.get('data'))
     key = data['key']
     cmdValue = data['cmdValue']
@@ -313,12 +315,15 @@ def query():
                 content = tracerouteParser.parse(api.resp)
 
         if (data['showHtml'] == "True"):
-            with open("./templates/result/" + queryTime + ".html", "w") as f:
+            filePath = "./templates/result/" + queryDate
+            if (not os.path.exists(filePath)):
+                os.makedirs(filePath)
+            with open(filePath + "/" + queryTime + ".html", "w") as f:
                 f.write(str(content))
 
-            return jsonify("/result/" + queryTime)
+            return jsonify("/result/" + queryDate + "/" + queryTime)
         else:
-            return content
+            return jsonify(content)
 
 
 if __name__ == '__main__':

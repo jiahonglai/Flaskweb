@@ -73,6 +73,7 @@ class TracerouteHTMLParser:
         doc = ' '.join(segs[:tail + 1])
         doc = re.sub('(?<= )[0-9]+\.[0-9](?= [0-9])', '', doc)
         doc = re.sub(r'  +', ' ', doc)
+
         return doc
 
     @staticmethod
@@ -96,7 +97,7 @@ class TracerouteHTMLParser:
         doc = re.sub(ipv4Regex, 'IP', doc)
         doc = re.sub('[0-9]+\.[0-9]+(?= ms)', 'rtt', doc)
         doc = ' ' + doc + ' '  # append last hop blank
-        regex_unit = " (?:ms|msec|IP|rtt| |(?<= )[0-9]+(?= )|\*)+"
+        regex_unit = " (?:ms|msec|IP|rtt| |\*)+"
         regex = ""
         hops = []
 
@@ -271,12 +272,11 @@ class TracerouteParser:
         parser = self.selectParser(doc)
         return parser.parse(doc)
 
-
-if __name__ == "__main__":
-    with open("./templates/result/2022-03-23 15:21:44.803865.html") as f:
-        f = f.readlines()
-        s = ""
+if __name__=="__main__":
+    with open("./templates/result/2022-03-23/21:48:09.529137.html") as f:
+        f=f.readlines()
+        s=""
         for i in f:
-            s += i
-        parser = TracerouteParser()
-        print(parser.parse(s))
+            s+=i
+        p=TracerouteParser()
+        print(p.parse(s))
