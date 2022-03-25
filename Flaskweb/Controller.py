@@ -223,7 +223,6 @@ class API:
         if type(self.routerKey) != '':
             self.data[self.routerKey] = self.routerValue
 
-        print(self.data)
         if re.search('get', self.method, re.IGNORECASE):
             if (self.url == 'https://lg.lasagna.dev'):
                 fullReqPath = 'https://lg.lasagna.dev/.well-known/looking-glass/v1/ping/' + str(
@@ -246,7 +245,7 @@ class API:
             self.fullpath = fullReqPath
 
             self.begintime = str(datetime.datetime.now())
-            print(self.begintime, " get ", self.fullpath)
+            app.logger.info(self.begintime, " get ", self.fullpath)
             with s.get(fullReqPath,
                        headers=self.headers,
                        verify=False,
@@ -262,7 +261,7 @@ class API:
                 self.data = str(self.data).replace("'", '"')
             self.fullpath = self.reqPath + str(self.data)
             self.begintime = str(datetime.datetime.now())
-            print(self.begintime, " post ", self.fullpath)
+            app.logger.info(self.begintime, " post ", self.fullpath)
             with s.post(self.reqPath,
                         self.data,
                         headers=self.headers,

@@ -149,7 +149,7 @@ class TracerouteHTMLParser:
                     resp['from'] = '*'
                     record['response'].append(resp)
                     resp = {}
-                elif 'ms' == seg:
+                elif ('ms' == seg or 'msec' == seg):
                     resp['rtt'] += ' ms'
                     record['response'].append(resp)
                     resp = {}
@@ -282,3 +282,12 @@ class TracerouteParser:
     def parse(self, doc):
         parser = self.selectParser(doc)
         return parser.parse(doc)
+
+if __name__=="__main__":
+    with open("./test.html") as f:
+        s=""
+        f=f.readlines()
+        for i in f:
+            s+=i
+        p=TracerouteParser()
+        print(p.parse(s))
