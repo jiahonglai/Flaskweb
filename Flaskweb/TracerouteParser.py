@@ -245,7 +245,7 @@ class TracerouteJsonParser:
             replacedSegs = replacedSegs[1:]
             resp = {}
             for seg in replacedSegs:
-                if (len(seg) > 6):  #认为是IP
+                if (is_ipv4(seg)):
                     if (lastSegIsIP):
                         continue
                     IP = seg
