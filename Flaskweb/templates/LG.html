@@ -121,22 +121,14 @@
 
 <body style="overflow: auto">
     <!-- 模态框 -->
-    <div class="modal fade" id="prompt" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-body">
-                    <h3>正在加载，请稍等...</h3>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" onclick="closePrompt()" class="btn btn-primary">
-                        确定
-                    </button>
-                </div>
-            </div>
+    <div hidden id="prompt" style="margin-top: 10%; text-align: center;">
+        <img src="../static/images/loading.gif" style="width: 100px; height: 100px;">
+        <div>
+            <h3>正在加载，请稍等...</h3>
         </div>
     </div>
 
-    <div>
+    <div id="content">
         <!-- Nav -->
         <nav_header id="nav_header" :nav_items="nav_items"></nav_header>
 
@@ -402,6 +394,10 @@
             let cmdValue = document.getElementById("cmdValue");
             cmdValue = cmdValue.options[cmdValue.selectedIndex].value;
             let parameter = document.getElementById("parameter").value;
+            if (parameter == "") {
+                alert("请输入参数");
+                return;
+            }
             let type = document.getElementById("type").value;
             $.ajax({
                 type: "POST",
@@ -417,20 +413,16 @@
                 },
                 dataType: "json",
                 beforeSend: function () {
-                    $('#prompt').modal('show');
+                    document.getElementById("prompt").hidden = false;
+                    document.getElementById("content").hidden = true;
                 },
                 success: function (response) {
-                    $('#prompt').modal('hide');
-                    window.open(response);
+                    window.location.href = response;
                 },
                 error: function () {
                     alert("查询失败");
                 }
             });
-        }
-
-        function closePrompt() {
-            $('#prompt').modal('hide');
         }
 
         function showPage(page) {

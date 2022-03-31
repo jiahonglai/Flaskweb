@@ -1,5 +1,6 @@
-from concurrent.futures import thread
-from email.policy import strict
+from gevent import monkey
+
+monkey.patch_all()
 from flask import Flask, request, jsonify, json
 from flask import render_template
 from gevent import pywsgi
@@ -26,7 +27,8 @@ def getLGpage():
 
 
 @app.route("/result/<date>/<time>")
-def getTmpHtml(date, time):
+def getHtmlResult(date, time):
+    print(123)
     return render_template("/result/" + date + "/" + time + ".html")
 
 
@@ -35,7 +37,7 @@ def getPageNum():
     data = json.loads(request.form.get('data'))
     conditions = ['cmdValue', 'area', 'country', 'state']
     recordNum = 0
-    with shelve.open("LGData") as db:
+    with shelve.open("LGData", "r") as db:  #必须以只读方式，否则多用户会报错
         for index in db:
             record = db[index]
             satisfaction = True
@@ -67,7 +69,7 @@ def getPage():
     recordList = []
     startIndex = (data['page'] - 1) * pageSize
     endIndex = data['page'] * pageSize
-    with shelve.open("LGData") as db:
+    with shelve.open("LGData", "r") as db:  #必须以只读方式，否则多用户会报错
         for index in db:
             record = db[index]
             satisfaction = True
@@ -301,7 +303,8 @@ def query():
             api.run(parameter)
 
             content += "URL: &nbsp" + info['site']
-            content += "&nbsp&nbsp&nbsp router: &nbsp" + info['routerValue'] + '<br><br>'
+            content += "&nbsp&nbsp&nbsp router: &nbsp" + info[
+                'routerValue'] + '<br><br>'
             if (cmdValue == "ping" or data['type'] == "raw"):
                 content += api.resp
             else:
