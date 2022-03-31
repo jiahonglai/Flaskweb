@@ -206,7 +206,7 @@
                                     </select>
                                 </div>
                                 <div style="float: left; margin-left: 5%">
-                                    <input type="text" class="form-control required" placeholder="参数"
+                                    <input type="text" class="form-control required" id='parameter' placeholder="参数"
                                         style='width: 170px;height: 30px;float: left' autofocus="autofocus">
                                     <button class='small button' onclick="query()"
                                         style='width: auto;height: 30px;float: left;margin-left: 10px'>查询</button>
@@ -399,8 +399,6 @@
                     keys.push(routers[index].value);
                 }
             }
-            alert(keys);
-            return;
             let cmdValue = document.getElementById("cmdValue");
             cmdValue = cmdValue.options[cmdValue.selectedIndex].value;
             let parameter = document.getElementById("parameter").value;
@@ -410,7 +408,7 @@
                 url: "/api/query",
                 data: {
                     data: JSON.stringify({
-                        "key": key,
+                        "keys": keys,
                         "cmdValue": cmdValue,
                         "parameter": parameter,
                         "type": type,

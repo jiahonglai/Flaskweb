@@ -1,4 +1,5 @@
 from concurrent.futures import thread
+from email.policy import strict
 from flask import Flask, request, jsonify, json
 from flask import render_template
 from gevent import pywsgi
@@ -280,38 +281,41 @@ def query():
     queryDate = str(datetime.date.today())
     queryTime = str(datetime.datetime.now())[11:]
     data = json.loads(request.form.get('data'))
-    key = data['key']
+    keys = data['keys']
     cmdValue = data['cmdValue']
     parameter = data['parameter']
     with shelve.open("LGData", "r") as db:  #必须以只读方式，否则多用户会报错
-        if (cmdValue not in db[key]['cmdValue']):
-            return "Command not Found!"
-        record = db[key]
-        info = {}
-        info['site'], info['routerValue'] = key.split("|")
-        info['routerKey'] = record['routerKey']
-        info['method'] = record['method']
-        info['hostKey'] = record['hostKey']
-        info['cmdKey'] = record['cmdKey']
-        info['data'] = record['data']
-        info['requestPath'] = record['requestPath']
-        info['cmdValue'] = record['cmdValue'][cmdValue]
-        api = API(info)
-        api.run(parameter)
+        content = ""
+        for key in keys:
+            record = db[key]
+            info = {}
+            info['site'], info['routerValue'] = key.split("|")
+            info['routerKey'] = record['routerKey']
+            info['method'] = record['method']
+            info['hostKey'] = record['hostKey']
+            info['cmdKey'] = record['cmdKey']
+            info['data'] = record['data']
+            info['requestPath'] = record['requestPath']
+            info['cmdValue'] = record['cmdValue'][cmdValue]
+            api = API(info)
+            api.run(parameter)
 
-        if (cmdValue == "ping" or data['type'] == "raw"):
-            content = api.resp
-        else:
-            if (cmdValue == "bgp"):
-                bgpInfo = {}
-                bgpInfo['Key'] = info['site']
-                bgpInfo['Status_code'] = api.reqstatus_code
-                bgpInfo['Responsecontent'] = api.resp
-                analyzer = BGPpathAnalyzer(bgpInfo)
-                content = analyzer.getJsonData()
-            elif (cmdValue == "traceroute"):
-                tracerouteParser = TracerouteParser()
-                content = tracerouteParser.parse(api.resp)
+            content += "URL: &nbsp" + info['site']
+            content += "&nbsp&nbsp&nbsp router: &nbsp" + info['routerValue'] + '<br><br>'
+            if (cmdValue == "ping" or data['type'] == "raw"):
+                content += api.resp
+            else:
+                if (cmdValue == "bgp"):
+                    bgpInfo = {}
+                    bgpInfo['Key'] = info['site']
+                    bgpInfo['Status_code'] = api.reqstatus_code
+                    bgpInfo['Responsecontent'] = api.resp
+                    analyzer = BGPpathAnalyzer(bgpInfo)
+                    content += analyzer.getJsonData()
+                elif (cmdValue == "traceroute"):
+                    tracerouteParser = TracerouteParser()
+                    content += tracerouteParser.parse(api.resp)
+            content += '<hr>'
 
         if (data['showHtml'] == "True"):
             filePath = "./templates/result/" + queryDate
