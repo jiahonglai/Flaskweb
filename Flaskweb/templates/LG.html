@@ -20,16 +20,10 @@
     <link rel="stylesheet" href="../static/assets/css/my.css" />
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"
         integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
-    <link type="text/css" rel="stylesheet" href="https://api.mqcdn.com/sdk/mapquest-js/v1.3.2/mapquest.css" />
+
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.1.1/mapbox-gl.css' rel='stylesheet' />
 
     <style>
-        #map {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            width: 100%;
-        }
-
         /*表格颜色*/
         .table-striped>tbody>tr:nth-child(odd)>td,
         .table-striped>tbody>tr:nth-child(odd)>th {
@@ -139,7 +133,7 @@
         <!-- Nav -->
         <nav_header id="nav_header" :nav_items="nav_items"></nav_header>
 
-        <div id="map" style="margin-top: 2%; margin-left:12%; width: 1000px;height: 450px"></div>
+        <div id="map" style="margin-top: 2%; margin-left: 12%; width: 1000px;height: 450px"></div>
         <!-- Main -->
         <div class="container pt-2 pt-md-3 pb-3 pb-md-6">
 
@@ -158,7 +152,7 @@
                                     <span style="float: left;line-height: 200%;font-size: 15px">区域&nbsp</span>
                                     <select class="form-control"
                                         style="width: 100px; appearance: auto; height: 30px; margin-bottom: 30px"
-                                        id="area" onchange="getPageNum();changeCenter()">
+                                        id="area" onchange="changeCenter();getPageNum()">
                                         <option value="All">All</option>
                                         <option value="Asia">亚洲</option>
                                         <option value="Europe">欧洲</option>
@@ -289,7 +283,7 @@
     <script src="../static/assets/js/global.min.bca3c47a1bcb7341823d522f2aaac338660e989b4ffe85fb6f643dbb86731feb.js ">
     </script>
     <script src="../static/assets/js/nav_header.js "></script>
-    <script src="https://api.mqcdn.com/sdk/mapquest-js/v1.3.2/mapquest.js"></script>
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.1.1/mapbox-gl.js'></script>
 
     <script type="text/javascript">
         let pageNum;
@@ -506,13 +500,13 @@
         let markers = [];
 
         function initMap() {
-            L.mapquest.key = 'MwZSex4ChXcRvwKLh3F1p25YDXj8jVrF';
-            map = L.mapquest.map('map', {
-                center: [25, 10],
-                layers: L.mapquest.tileLayer('map'),
-                zoom: 2
+            mapboxgl.accessToken = 'pk.eyJ1IjoiY2hyaXNld2Fybm5lciIsImEiOiJja3NwbjF6bjUwNGJtMm5rdHdlbjhyYm05In0.6bXLpBBZJCFXeYMX6pjL9w';
+            map = new mapboxgl.Map({
+                container: "map",
+                style: 'mapbox://styles/mapbox/streets-v11', // stylesheet location
+                center: [10, 15], // starting position [lng, lat]
+                zoom: 0.95 // starting zoom
             });
-            map.addControl(L.mapquest.control());
         }
 
         function showMap() {
@@ -550,19 +544,20 @@
 
 
         function changeCenter() {
-            let areaName = ["ALL", "Asia", "Europe", "America", "Africa", "Oceania"];
+            let areaName = ["All", "Asia", "Europe", "America", "Africa", "Oceania"];
             let areaCenter = [
-                [25, 10, 2],
-                [30, 100, 3],
-                [50, 15, 4],
-                [20, -75, 3],
-                [0, 10, 3],
-                [-30, 140, 4]
+                [10, 15, 0.95],
+                [120, 35, 1.7],
+                [25, 50, 2.9],
+                [-85, 20, 2],
+                [20, 0, 2.3],
+                [140, -25, 2.7]
             ];
             let area = document.getElementById("area");
             area = area.options[area.selectedIndex].value;
             area = areaName.indexOf(area);
-            map.setView([areaCenter[area][0], areaCenter[area][1]], areaCenter[area][2]);
+            map.setCenter([areaCenter[area][0], areaCenter[area][1]]);
+            map.setZoom(areaCenter[area][2]);
         }
     </script>
 
