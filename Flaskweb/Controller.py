@@ -1,3 +1,5 @@
+from cgitb import handler
+import logging
 from gevent import monkey
 
 monkey.patch_all()
@@ -28,7 +30,6 @@ def getLGpage():
 
 @app.route("/result/<date>/<time>")
 def getHtmlResult(date, time):
-    print(123)
     return render_template("/result/" + date + "/" + time + ".html")
 
 
@@ -248,7 +249,7 @@ class API:
             self.fullpath = fullReqPath
 
             self.begintime = str(datetime.datetime.now())
-            app.logger.info(self.begintime, " get ", self.fullpath)
+            print(self.begintime, " get ", self.fullpath)
             with s.get(fullReqPath,
                        headers=self.headers,
                        verify=False,
@@ -264,7 +265,7 @@ class API:
                 self.data = str(self.data).replace("'", '"')
             self.fullpath = self.reqPath + str(self.data)
             self.begintime = str(datetime.datetime.now())
-            app.logger.info(self.begintime, " post ", self.fullpath)
+            print(self.begintime, " post ", self.fullpath)
             with s.post(self.reqPath,
                         self.data,
                         headers=self.headers,
@@ -280,6 +281,7 @@ class API:
 
 @app.route("/api/query", methods=["POST"])
 def query():
+    print(request.remote_addr)
     queryDate = str(datetime.date.today())
     queryTime = str(datetime.datetime.now())[11:]
     data = json.loads(request.form.get('data'))
@@ -287,7 +289,7 @@ def query():
     cmdValue = data['cmdValue']
     parameter = data['parameter']
     with shelve.open("LGData", "r") as db:  #必须以只读方式，否则多用户会报错
-        content = ""
+        content = "<head><title>Result</title></head>"
         for key in keys:
             record = db[key]
             info = {}
