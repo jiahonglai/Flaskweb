@@ -133,7 +133,7 @@
         <!-- Nav -->
         <nav_header id="nav_header" :nav_items="nav_items"></nav_header>
 
-        <div id="map" style="margin-top: 2%; margin-left: 12%; width: 1000px;height: 450px"></div>
+        <div id="map" style="margin-top: 2%; margin-left: 10%; width: 1000px;height: 450px"></div>
         <!-- Main -->
         <div class="container pt-2 pt-md-3 pb-3 pb-md-6">
 
@@ -422,6 +422,7 @@
                 },
                 error: function () {
                     alert("查询失败");
+                    window.location.href = "/";
                 }
             });
         }

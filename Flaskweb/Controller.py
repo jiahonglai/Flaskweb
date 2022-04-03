@@ -254,7 +254,7 @@ class API:
                        headers=self.headers,
                        verify=False,
                        stream=True,
-                       timeout=240) as req:
+                       timeout=360) as req:
                 self.resp = req.text.replace('\n', ' ').replace('\t',
                                                                 ' ').replace(
                                                                     '\r', ' ')
@@ -271,7 +271,7 @@ class API:
                         headers=self.headers,
                         verify=False,
                         stream=True,
-                        timeout=240) as req:
+                        timeout=360) as req:
                 self.resp = req.text.replace('\n', ' ').replace('\t',
                                                                 ' ').replace(
                                                                     '\r', ' ')
@@ -304,6 +304,8 @@ def query():
             api = API(info)
             api.run(parameter)
 
+            print(api.resp)
+            
             content += "URL: &nbsp" + info['site']
             content += "&nbsp&nbsp&nbsp router: &nbsp" + info[
                 'routerValue'] + '<br><br>'
