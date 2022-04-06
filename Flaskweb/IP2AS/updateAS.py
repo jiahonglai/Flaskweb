@@ -1,4 +1,5 @@
 import shelve
+from ipasn import IP2AS
 
 
 def txt2db():
@@ -16,11 +17,16 @@ def txt2db():
 def updateAS():
     with shelve.open("../LGData") as db:
         with shelve.open("./ip2as") as AS:
+            IP2AStool = IP2AS('routeviews-rv2-20200711-1200.pfx2as', None)
             for key in db:
                 tmp = db[key]
                 IP = tmp['IP']
                 if (IP in AS):
-                    tmp['AS'] = AS[IP]
+                    ASNum = AS[IP]
+                else:
+                    ASNum = IP2AStool.getASNum(IP)
+                if (int(ASNum) > 0):
+                    tmp['AS'] = ASNum
                     db[key] = tmp
 
 
