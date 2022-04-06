@@ -92,6 +92,9 @@ def getPage():
                     info = {}
                     info['URL'], info['routerValue'] = index.split('|')
                     info['AS'] = record.get("AS")
+                    info['latitude'] = record.get("latitude")
+                    info['longitude'] = record.get("longitude")
+                    info['city'] = record.get("city")
                     for condition in conditions:
                         if (condition == "cmdValue"):
                             info["cmdValue"] = []
