@@ -32,7 +32,8 @@ def updateGeo():
                     right = mid - 1
             left -= 1
             if (geoData['ip_from'].iloc[left] <= IPNum
-                    and IPNum <= geoData['ip_to'].iloc[left]):
+                    and IPNum <= geoData['ip_to'].iloc[left]
+                    and geoData['country_name'].iloc[left] != '-'):
                 tmp = db[key]
                 tmp['latitude'] = geoData['latitude'].iloc[left]
                 tmp['longitude'] = geoData['longitude'].iloc[left]

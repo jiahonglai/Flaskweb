@@ -43,16 +43,17 @@ def getPageNum():
             record = db[index]
             satisfaction = True
             for condition in conditions:
+                print(condition)
                 if (condition == "cmdValue"):
                     if (data[condition] != "All") and (
                             data[condition] not in record[condition]):
                         satisfaction = False
                         break
                 else:
-                    if ((data[condition] != "All")
-                            and (data[condition] != record[condition])):
+                    if (data[condition] != "All") and (data[condition] !=
+                                                       record.get(condition)):
                         satisfaction = False
-                    break
+                        break
 
             if (satisfaction):
                 recordNum += 1
@@ -82,7 +83,7 @@ def getPage():
                         break
                 else:
                     if (data[condition] != "All") and (data[condition] !=
-                                                       record[condition]):
+                                                       record.get(condition)):
                         satisfaction = False
                         break
 
@@ -108,6 +109,19 @@ def getPage():
                         break
 
         return jsonify(recordList)
+
+
+@app.route("/country", methods=["GET"])
+def getCountry():
+    countryList = []
+    with shelve.open("LGData", "r") as db:  #必须以只读方式，否则多用户会报错
+        for index in db:
+            country = db[index].get("country")
+            if (country != None and country not in countryList):
+                countryList.append(country)
+
+        countryList.sort()
+        return jsonify(countryList)
 
 
 class API:
@@ -308,7 +322,7 @@ def query():
             api.run(parameter)
 
             print(api.resp)
-            
+
             content += "URL: &nbsp" + info['site']
             content += "&nbsp&nbsp&nbsp router: &nbsp" + info[
                 'routerValue'] + '<br><br>'

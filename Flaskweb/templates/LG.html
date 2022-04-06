@@ -287,11 +287,13 @@
 
     <script type="text/javascript">
         let pageNum;
-        let filePath;
+        let map;
+        let markers = [];
 
         window.onload = function () {
             initMap();
             getPageNum();
+            listCountry();
         }
 
         function getPageNum() {
@@ -348,6 +350,10 @@
                     })
                 },
                 success: function (result) {
+                    if (markers.length > 0) { //清除之前的标记点
+                        for (let i in markers) markers[i].remove();
+                        markers = [];
+                    }
                     let msg = "";
                     for (let index in result) {
                         let record = result[index];
@@ -369,6 +375,10 @@
                         msg +=
                             "<td style='text-align: center;vertical-align: middle'><img src='static/images/tick.png' width='50px' alt='√'></td>";
                         msg += "</tr>";
+                        if (record['longitude'] != null) {
+                            let marker = new mapboxgl.Marker().setLngLat([record['longitude'], record['latitude']]).addTo(map);
+                            markers.push(marker);
+                        }
                     }
                     $("#info").html(msg);
                 },
@@ -382,7 +392,7 @@
             let routers = document.getElementsByName("routers");
             keys = [];
             checkedNum = 0;
-            for (let index = 0, length = routers.length; index < length; ++index) {
+            for (let index in routers) {
                 if (routers[index].checked) {
                     ++checkedNum;
                     if (checkedNum == 6) {
@@ -470,35 +480,25 @@
         }
 
         function listCountry() {
-            $.getJSON({
-                url: filePath,
+            $.ajax({
+                url: "/country",
                 type: "GET",
                 dataType: "json",
-                success: function (data) {
-                    let countryList = [];
+                success: function (countryList) {
                     let countryOption = document.getElementById("country");
-                    for (let i in data) {
-                        let item = data[i];
-                        for (let j in item["VP"]) {
-                            let country = item["VP"][j][2];
-                            if (countryList.indexOf(country) == -1) {
-                                let option = document.createElement("option");
-                                option.value = country;
-                                option.text = country;
-                                countryOption.options.add(option);
-                                countryList.push(country);
-                            }
-                        }
+                    for (let i in countryList) {
+                        let country = countryList[i];
+                        let option = document.createElement("option");
+                        option.value = country;
+                        option.text = country;
+                        countryOption.options.add(option);
                     }
                 },
                 error: function () {
-                    alert("数据加载出错！");
+                    alert("国家数据加载出错！");
                 }
             });
         }
-
-        let map;
-        let markers = [];
 
         function initMap() {
             mapboxgl.accessToken = 'pk.eyJ1IjoiY2hyaXNld2Fybm5lciIsImEiOiJja3NwbjF6bjUwNGJtMm5rdHdlbjhyYm05In0.6bXLpBBZJCFXeYMX6pjL9w';
@@ -509,40 +509,6 @@
                 zoom: 0.95 // starting zoom
             });
         }
-
-        function showMap() {
-            $.getJSON({
-                url: filePath,
-                type: "GET",
-                dataType: "json",
-                success: function (data) {
-                    if (markers.length > 0) { //清除之前的标记点
-                        for (let i in markers) map.removeLayer(markers[i]);
-                        markers = [];
-                    }
-                    for (let i in data) {
-                        let item = data[i];
-                        for (let j in item["VP"]) {
-                            let x = item["VP"][j][4];
-                            let y = item["VP"][j][5];
-                            let marker = new L.mapquest.textMarker([x, y], {
-                                type: 'marker',
-                                icon: {
-                                    primaryColor: '#a368b0',
-                                    secondaryColor: '#861f9f',
-                                    size: 'sm'
-                                }
-                            }).addTo(map);
-                            markers.push(marker);
-                        }
-                    }
-                },
-                error: function () {
-                    alert("数据加载出错！");
-                }
-            });
-        }
-
 
         function changeCenter() {
             let areaName = ["All", "Asia", "Europe", "America", "Africa", "Oceania"];
