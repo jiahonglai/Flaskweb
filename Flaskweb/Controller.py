@@ -43,7 +43,6 @@ def getPageNum():
             record = db[index]
             satisfaction = True
             for condition in conditions:
-                print(condition)
                 if (condition == "cmdValue"):
                     if (data[condition] != "All") and (
                             data[condition] not in record[condition]):

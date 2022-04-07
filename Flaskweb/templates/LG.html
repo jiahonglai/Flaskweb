@@ -296,6 +296,13 @@
             listCountry();
         }
 
+        if (window.name != "noReload") {
+            window.name = "noReload";
+            location.reload();
+        } else {
+            window.name = "";
+        }
+        
         function getPageNum() {
             let cmdValue = document.getElementById("cmdValue");
             cmdValue = cmdValue.options[cmdValue.selectedIndex].value;
