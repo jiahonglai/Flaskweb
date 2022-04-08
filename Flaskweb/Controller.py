@@ -111,10 +111,13 @@ def getPage():
 
 @app.route("/country", methods=["GET"])
 def getCountry():
+    area = request.args.get("area")
     countryList = []
     with shelve.open("LGData", "r") as db:  #必须以只读方式，否则多用户会报错
-        for index in db:
-            country = db[index].get("country")
+        for key in db:
+            if (area != "All" and area != db[key].get("area")):
+                continue
+            country = db[key].get("country")
             if (country != None and country not in countryList):
                 countryList.append(country)
 
@@ -318,8 +321,6 @@ def query():
             info['cmdValue'] = record['cmdValue'][cmdValue]
             api = API(info)
             api.run(parameter)
-
-            print(api.resp)
 
             content += "URL: &nbsp" + info['site']
             content += "&nbsp&nbsp&nbsp router: &nbsp" + info[

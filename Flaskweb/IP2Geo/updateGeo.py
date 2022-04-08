@@ -1,4 +1,3 @@
-import chunk
 import shelve
 import pandas as pd
 
@@ -29,7 +28,7 @@ def updateGeo():
     while (True):
         try:
             chunk = geoDataReader.get_chunk(chunkSize)
-            chunks.append([chunk,len(chunk)])
+            chunks.append([chunk, len(chunk)])
 
         except StopIteration:
             break
@@ -47,7 +46,7 @@ def updateGeo():
                         left = mid + 1
                     else:
                         right = mid - 1
-                
+
                 left -= 1
                 if (geoData['ip_from'].iloc[left] <= IPNum
                         and IPNum <= geoData['ip_to'].iloc[left]
@@ -61,5 +60,24 @@ def updateGeo():
                     break
 
 
+def updateContinent():
+    with shelve.open("../LGData") as db:
+        continentsData = pd.read_csv("continents.csv")
+        continent = {}
+        for index, item in continentsData.iterrows():
+            continent[item['country']] = item['continent']
+
+        for key in db:
+            tmp = db[key]
+            if (tmp.get('country') == None):
+                continue
+            if (continent.get(tmp['country']) == None):
+                print(tmp['country'])
+            else:
+                tmp['area'] = continent.get(tmp['country'])
+                db[key] = tmp
+
+
 if __name__ == "__main__":
     updateGeo()
+    updateContinent()

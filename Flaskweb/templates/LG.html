@@ -152,7 +152,7 @@
                                     <span style="float: left;line-height: 200%;font-size: 15px">区域&nbsp</span>
                                     <select class="form-control"
                                         style="width: 100px; appearance: auto; height: 30px; margin-bottom: 30px"
-                                        id="area" onchange="changeCenter();getPageNum()">
+                                        id="area" onchange="changeCenter();listCountry();getPageNum()">
                                         <option value="All">All</option>
                                         <option value="Asia">亚洲</option>
                                         <option value="Europe">欧洲</option>
@@ -162,7 +162,7 @@
                                     </select>
                                 </div>
                                 <div style="float: left; margin-left: 2%">
-                                    <span style="float: left;line-height: 200%;font-size: 15px">国家&nbsp</span>
+                                    <span style="float: left;line-height: 200%;font-size: 15px">国家/地区&nbsp</span>
                                     <select class="form-control"
                                         style="width: 100px; appearance: auto; height: 30px; margin-bottom: 30px"
                                         id="country" onchange="getPageNum()">
@@ -215,7 +215,7 @@
                                         <th style="width: 5%; text-align: center; font-family: 黑体; font-size: 16px">AS
                                         </th>
                                         <th style="width: 6%; text-align: center; font-family: 黑体; font-size: 16px">
-                                            国家</th>
+                                            国家/地区</th>
                                         <th style="width: 6%; text-align: center; font-family: 黑体; font-size: 16px">
                                             城市</th>
                                         <th style="width: 5%; text-align: center; font-family: 黑体; font-size: 16px">
@@ -302,7 +302,7 @@
         } else {
             window.name = "";
         }
-        
+
         function getPageNum() {
             let cmdValue = document.getElementById("cmdValue");
             cmdValue = cmdValue.options[cmdValue.selectedIndex].value;
@@ -487,12 +487,16 @@
         }
 
         function listCountry() {
+            let area = document.getElementById("area");
+            area = area.options[area.selectedIndex].value;
             $.ajax({
                 url: "/country",
                 type: "GET",
+                data: { 'area': area },
                 dataType: "json",
                 success: function (countryList) {
                     let countryOption = document.getElementById("country");
+                    countryOption.options.length = 1;
                     for (let i in countryList) {
                         let country = countryList[i];
                         let option = document.createElement("option");
