@@ -1,5 +1,4 @@
 from cgitb import handler
-import logging
 from gevent import monkey
 
 monkey.patch_all()

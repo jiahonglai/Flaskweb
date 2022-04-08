@@ -1,3 +1,4 @@
+import chunk
 import shelve
 import pandas as pd
 
@@ -15,31 +16,49 @@ def updateGeo():
         'ip_from', 'ip_to', 'country_code', 'country_name', 'region', 'city',
         'latitude', 'longitude', 'zipcode'
     ]
-    geoData = pd.read_csv("IP2Geo.csv", header=None)
-    geoData.columns = columns
-    geoDataLen = len(geoData)
+    useCols = [
+        'ip_from', 'ip_to', 'country_name', 'city', 'latitude', 'longitude'
+    ]
+    chunkSize = int(1e6)
+    geoDataReader = pd.read_csv("IP2Geo.csv",
+                                header=None,
+                                names=columns,
+                                usecols=useCols,
+                                iterator=True)
+    chunks = []
+    while (True):
+        try:
+            chunk = geoDataReader.get_chunk(chunkSize)
+            chunks.append([chunk,len(chunk)])
+
+        except StopIteration:
+            break
+
     with shelve.open("../LGData") as db:
         for key in db:
             IPAddr = db[key]['IP']
             IPNum = IPAddr2IPNum(IPAddr)
-            left = 0
-            right = geoDataLen - 1
-            while (left <= right):  #二分查找
-                mid = (left + right) // 2
-                if (IPNum >= geoData['ip_from'].iloc[mid]):
-                    left = mid + 1
-                else:
-                    right = mid - 1
-            left -= 1
-            if (geoData['ip_from'].iloc[left] <= IPNum
-                    and IPNum <= geoData['ip_to'].iloc[left]
-                    and geoData['country_name'].iloc[left] != '-'):
-                tmp = db[key]
-                tmp['latitude'] = geoData['latitude'].iloc[left]
-                tmp['longitude'] = geoData['longitude'].iloc[left]
-                tmp['country'] = geoData['country_name'].iloc[left]
-                tmp['city'] = geoData['city'].iloc[left]
-                db[key] = tmp
+            for geoData, geoDataLen in chunks:
+                left = 0
+                right = geoDataLen - 1
+                while (left <= right):  #二分查找
+                    mid = (left + right) // 2
+                    if (IPNum >= geoData['ip_from'].iloc[mid]):
+                        left = mid + 1
+                    else:
+                        right = mid - 1
+                
+                left -= 1
+                if (geoData['ip_from'].iloc[left] <= IPNum
+                        and IPNum <= geoData['ip_to'].iloc[left]
+                        and geoData['country_name'].iloc[left] != '-'):
+                    tmp = db[key]
+                    tmp['latitude'] = geoData['latitude'].iloc[left]
+                    tmp['longitude'] = geoData['longitude'].iloc[left]
+                    tmp['country'] = geoData['country_name'].iloc[left]
+                    tmp['city'] = geoData['city'].iloc[left]
+                    db[key] = tmp
+                    break
 
 
 if __name__ == "__main__":
