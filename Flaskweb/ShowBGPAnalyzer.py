@@ -7,11 +7,12 @@ import math
 
 
 class BGPpathAnalyzer:
+
     def __init__(self, info):
         self.key = {}
         self.key[info['Key']] = {'as': '', 'aspath': [], 'bestaspath': []}
         if (pd.isnull(info['Responsecontent'])):
-            self.key = "Analyze Errro!"
+            self.key = "Analyze Error!"
             return
         if ('{"result":' == str(info['Responsecontent'])[:10]):
             doc = str(json.loads(info['Responsecontent'])['result']).lower()
@@ -60,7 +61,7 @@ class BGPpathAnalyzer:
                 or 'rate limit exceeded' in doc
                 or 'please enter the ip in a cidr format' in doc
                 or 'you have too many active queries' in doc):
-            self.key = "Analyze Errro!"
+            self.key = "Analyze Error!"
             return
 
         ##剔除掉一些无关的网页元素

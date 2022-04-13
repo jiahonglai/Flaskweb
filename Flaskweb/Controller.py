@@ -1,4 +1,3 @@
-from cgitb import handler
 from gevent import monkey
 
 monkey.patch_all()
