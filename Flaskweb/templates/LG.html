@@ -133,7 +133,7 @@
         <!-- Nav -->
         <nav_header id="nav_header" :nav_items="nav_items"></nav_header>
 
-        <div id="map" style="margin-top: 2%; margin-left: 10%; width: 1000px;height: 450px"></div>
+        <div id="map" style="margin-top: 2%; margin-left: 9%; width: 1050px;height: 450px"></div>
         <!-- Main -->
         <div class="container pt-2 pt-md-3 pb-3 pb-md-6">
 
@@ -148,7 +148,7 @@
                             <table class="table table-striped table-responsive table-hover table-condensed"
                                 style="word-break: break-word;width: atuo">
 
-                                <div style="float: left">
+                                <div style="float: left; margin-left: 3%">
                                     <span style="float: left;line-height: 200%;font-size: 15px">区域&nbsp</span>
                                     <select class="form-control"
                                         style="width: 100px; appearance: auto; height: 30px; margin-bottom: 30px"
@@ -170,16 +170,6 @@
                                     </select>
                                 </div>
                                 <div style="float: left; margin-left: 2%">
-                                    <span style="float: left;line-height: 200%;font-size: 15px">状态&nbsp</span>
-                                    <select class="form-control"
-                                        style="width: 100px; appearance: auto; height: 30px; margin-bottom: 30px"
-                                        id="state" onchange="getPageNum()">
-                                        <option value="All">All</option>
-                                        <option value="active">活跃</option>
-                                        <option value="inactive">不活跃</option>
-                                    </select>
-                                </div>
-                                <div style="float: left; margin-left: 2%">
                                     <span style="float: left;line-height: 200%;font-size: 15px">命令&nbsp</span>
                                     <select class="form-control"
                                         style="width: 100px; appearance: auto; height: 30px; margin-bottom: 30px"
@@ -189,7 +179,7 @@
                                         <option value="bgp">bgp routes</option>
                                     </select>
                                 </div>
-                                <div style="float: left; margin-left: 1%">
+                                <div style="float: left; margin-left: 2%">
                                     <span style="float: left;line-height: 200%;font-size: 15px">格式&nbsp</span>
                                     <select class="form-control"
                                         style="width: 80px; appearance: auto; height: 30px; margin-bottom: 30px"
@@ -198,9 +188,9 @@
                                         <option value="json">json</option>
                                     </select>
                                 </div>
-                                <div style="float: left; margin-left: 5%">
+                                <div style="float: left; margin-left: 15%">
                                     <input type="text" class="form-control required" id='parameter' placeholder="参数"
-                                        style='width: 170px;height: 30px;float: left' autofocus="autofocus">
+                                        style='width: 200px;height: 30px;float: left' autofocus="autofocus">
                                     <button class='small button' onclick="query()"
                                         style='width: auto;height: 30px;float: left;margin-left: 10px'>查询</button>
                                 </div>
@@ -310,8 +300,6 @@
             area = area.options[area.selectedIndex].value;
             let country = document.getElementById("country");
             country = country.options[country.selectedIndex].value;
-            let state = document.getElementById("state");
-            state = state.options[state.selectedIndex].value;
             $.ajax({
                 url: "/pagenum",
                 type: "POST",
@@ -321,7 +309,6 @@
                         "cmdValue": cmdValue,
                         "area": area,
                         "country": country,
-                        "state": state
                     })
                 },
                 success: function (result) {
@@ -342,8 +329,6 @@
             area = area.options[area.selectedIndex].value;
             let country = document.getElementById("country");
             country = country.options[country.selectedIndex].value;
-            let state = document.getElementById("state");
-            state = state.options[state.selectedIndex].value;
             $.ajax({
                 url: "/page",
                 type: "POST",
@@ -352,7 +337,6 @@
                         "cmdValue": cmdValue,
                         "area": area,
                         "country": country,
-                        "state": state,
                         "page": page
                     })
                 },
@@ -435,7 +419,11 @@
                     document.getElementById("content").hidden = true;
                 },
                 success: function (response) {
-                    window.location.href = response;
+                    if (response['Info']!=null) {
+                        alert(response['Info']);
+                        window.location.href = "/";
+                    }
+                    else window.location.href = response;
                 },
                 error: function () {
                     alert("查询失败");

@@ -1,3 +1,4 @@
+import sqlite3
 from gevent import monkey
 
 monkey.patch_all()
@@ -12,13 +13,12 @@ urllib3.disable_warnings()
 import requests
 from bs4 import BeautifulSoup
 from typing import List
-import datetime
+from datetime import datetime, date
 import re
 from ShowBGPAnalyzer import BGPpathAnalyzer
 from TracerouteParser import TracerouteParser
 
 app = Flask(__name__)
-pageSize = 30  # 一页显示30条记录
 
 
 @app.route("/")
@@ -31,10 +31,13 @@ def getHtmlResult(date, time):
     return render_template("/result/" + date + "/" + time + ".html")
 
 
+pageSize = 30  # 一页显示30条记录
+
+
 @app.route("/pagenum", methods=["POST"])
 def getPageNum():
     data = json.loads(request.form.get('data'))
-    conditions = ['cmdValue', 'area', 'country', 'state']
+    conditions = ['cmdValue', 'area', 'country']
     recordNum = 0
     with shelve.open("LGData", "r") as db:  #必须以只读方式，否则多用户会报错
         for index in db:
@@ -63,7 +66,7 @@ def getPageNum():
 @app.route("/page", methods=["POST"])
 def getPage():
     data = json.loads(request.form.get('data'))
-    conditions = ['cmdValue', 'area', 'country', 'state']
+    conditions = ['cmdValue', 'area', 'country']
     recordNum = 0
     recordList = []
     startIndex = (data['page'] - 1) * pageSize
@@ -265,7 +268,7 @@ class API:
                 fullReqPath = fullReqPath[:-1]  # remove last &
             self.fullpath = fullReqPath
 
-            self.begintime = str(datetime.datetime.now())
+            self.begintime = str(datetime.now())
             print(self.begintime, " get ", self.fullpath)
             with s.get(fullReqPath,
                        headers=self.headers,
@@ -276,12 +279,12 @@ class API:
                                                                 ' ').replace(
                                                                     '\r', ' ')
                 self.reqstatus_code = req.status_code
-                self.endtime = str(datetime.datetime.now())
+                self.endtime = str(datetime.now())
         else:  # post
             if 'sharktech.net' in self.url or 'https://alice.ja.net' in self.url or 'http://lg.sentrian.net.au' in self.url or 'https://lg.launtel.net.au' in self.url:  # 字符串做postData，特殊处理
                 self.data = str(self.data).replace("'", '"')
             self.fullpath = self.reqPath + str(self.data)
-            self.begintime = str(datetime.datetime.now())
+            self.begintime = str(datetime.now())
             print(self.begintime, " post ", self.fullpath)
             with s.post(self.reqPath,
                         self.data,
@@ -293,16 +296,71 @@ class API:
                                                                 ' ').replace(
                                                                     '\r', ' ')
                 self.reqstatus_code = req.status_code
-                self.endtime = str(datetime.datetime.now())
+                self.endtime = str(datetime.now())
+
+
+def createTable():
+    with sqlite3.connect("Web.db") as conn:
+        cur = conn.cursor()
+        cur.execute('''CREATE TABLE IF NOT EXISTS visitor
+                    (IP char(40) NOT NULL,
+                    last_query_time date NOT NULL,
+                    query_number int default 0)''')
+        cur.close()
+
+
+deltaTime = 60  #两次查询的间隔(s)
+totalQueryNum = 10  #一天最多查询测量点个数
 
 
 @app.route("/api/query", methods=["POST"])
 def query():
-    print(request.remote_addr)
-    queryDate = str(datetime.date.today())
-    queryTime = str(datetime.datetime.now())[11:]
+    queryDate = str(date.today())
+    queryTime = str(datetime.now())[11:]
     data = json.loads(request.form.get('data'))
     keys = data['keys']
+    with sqlite3.connect("Web.db") as conn:
+        cur = conn.cursor()
+        IP = request.remote_addr
+        cur.execute("SELECT * FROM visitor WHERE IP=?", (IP, ))
+        record = cur.fetchone()
+        nowTime = datetime.now().replace(microsecond=0)
+        if (record != None):
+            lastQueryTime = datetime.strptime(record[1], "%Y-%m-%d %H:%M:%S")
+            secondDelta = nowTime - lastQueryTime
+            if (secondDelta.seconds < deltaTime):
+                cur.close()
+                return jsonify({'Info': '两次查询间隔应大于60秒'})
+
+            queryNum = record[2]
+            dayDelta = nowTime.date() - lastQueryTime.date()
+            if (dayDelta.days > 0):
+                queryNum = 0
+            if (totalQueryNum == queryNum):
+                cur.close()
+                return jsonify({'Info': '今天已达到测量上限'})
+            leftNum = totalQueryNum - (queryNum + len(keys))
+            if (leftNum < 0):
+                cur.close()
+                return jsonify({
+                    'Info':
+                    '最多还能选择' + str(totalQueryNum - queryNum) + '个测量点，请重新选择'
+                })
+
+            cur.execute("UPDATE visitor SET query_number=? WHERE IP=?",
+                        (queryNum + len(keys), IP))
+        else:
+            cur.execute("INSERT INTO visitor VALUES (?,?,?)", (
+                IP,
+                datetime.now().replace(microsecond=0),
+                len(keys),
+            ))
+
+        cur.execute("UPDATE visitor SET last_query_time=? WHERE IP=?",
+                    (nowTime, IP))
+        conn.commit()
+        cur.close()
+
     cmdValue = data['cmdValue']
     parameter = data['parameter']
     with shelve.open("LGData", "r") as db:  #必须以只读方式，否则多用户会报错
@@ -352,5 +410,6 @@ def query():
 
 
 if __name__ == '__main__':
+    createTable()
     server = pywsgi.WSGIServer(('0.0.0.0', 5080), app)
     server.serve_forever()
