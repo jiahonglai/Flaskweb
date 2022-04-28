@@ -34,7 +34,7 @@ def getHtmlResult(date, time):
 pageSize = 30  # 一页显示30条记录
 
 
-@app.route("/pagenum", methods=["POST"])
+@app.route("/page_num", methods=["POST"])
 def getPageNum():
     data = json.loads(request.form.get('data'))
     conditions = ['cmdValue', 'area', 'country']
@@ -299,18 +299,59 @@ class API:
                 self.endtime = str(datetime.now())
 
 
-def createTable():
-    with sqlite3.connect("Web.db") as conn:
-        cur = conn.cursor()
-        cur.execute('''CREATE TABLE IF NOT EXISTS visitor
+visitorNum = 0
+
+
+def initialize():
+    global visitorNum
+    if (os.path.exists("VisitorNumber.txt")):
+        with open("VisitorNumber.txt") as f:
+            visitorNum = int(f.readline())
+
+    with sqlite3.connect("Web.db") as con:
+        con.execute('''CREATE TABLE IF NOT EXISTS visitor
                     (IP char(40) NOT NULL,
-                    last_query_time date NOT NULL,
-                    query_number int default 0)''')
-        cur.close()
+                    last_query_time date DEFAULT 0,
+                    query_number int default 0,
+                    last_visit_time date NOT NULL,
+                    PRIMARY KEY (IP))''')
+
+
+@app.before_request
+def countVisitor():
+    global visitorNum
+    with sqlite3.connect("Web.db") as con:
+        IP = request.remote_addr
+        record = con.execute("SELECT * FROM visitor WHERE IP=?",
+                             (IP, )).fetchone()
+        nowTime = datetime.now().replace(microsecond=0)
+        if (record != None):
+            lastVisitTime = datetime.strptime(record[3], "%Y-%m-%d %H:%M:%S")
+            dayDelta = nowTime.date() - lastVisitTime.date()
+            if (dayDelta.days > 0):
+                visitorNum += 1
+        else:
+            con.execute("INSERT INTO visitor(IP,last_visit_time) VALUES (?,?)",
+                        (
+                            IP,
+                            datetime.now().replace(microsecond=0),
+                        ))
+            visitorNum += 1
+
+        con.execute("UPDATE visitor SET last_visit_time=? WHERE IP=?",
+                    (nowTime, IP))
+        con.commit()
+
+        with open("VisitorNumber.txt", "w") as f:
+            f.write(str(visitorNum))
+
+@app.route("/visitor_num", methods=["GET"])
+def getVisitorNum():
+    return jsonify(visitorNum)
 
 
 deltaTime = 60  #两次查询的间隔(s)
-totalQueryNum = 10  #一天最多查询测量点个数
+totalQueryNum = 100  #一天最多查询测量点个数
 
 
 @app.route("/api/query", methods=["POST"])
@@ -319,47 +360,37 @@ def query():
     queryTime = str(datetime.now())[11:]
     data = json.loads(request.form.get('data'))
     keys = data['keys']
-    with sqlite3.connect("Web.db") as conn:
-        cur = conn.cursor()
+    with sqlite3.connect("Web.db") as con:
         IP = request.remote_addr
-        cur.execute("SELECT * FROM visitor WHERE IP=?", (IP, ))
-        record = cur.fetchone()
+        record = con.execute("SELECT * FROM visitor WHERE IP=?",
+                             (IP, )).fetchone()
         nowTime = datetime.now().replace(microsecond=0)
-        if (record != None):
+        queryNum = record[2]
+        if (queryNum != 0):
             lastQueryTime = datetime.strptime(record[1], "%Y-%m-%d %H:%M:%S")
             secondDelta = nowTime - lastQueryTime
             if (secondDelta.seconds < deltaTime):
-                cur.close()
                 return jsonify({'Info': '两次查询间隔应大于60秒'})
 
-            queryNum = record[2]
             dayDelta = nowTime.date() - lastQueryTime.date()
             if (dayDelta.days > 0):
                 queryNum = 0
             if (totalQueryNum == queryNum):
-                cur.close()
                 return jsonify({'Info': '今天已达到测量上限'})
+
             leftNum = totalQueryNum - (queryNum + len(keys))
             if (leftNum < 0):
-                cur.close()
                 return jsonify({
                     'Info':
                     '最多还能选择' + str(totalQueryNum - queryNum) + '个测量点，请重新选择'
                 })
 
-            cur.execute("UPDATE visitor SET query_number=? WHERE IP=?",
-                        (queryNum + len(keys), IP))
-        else:
-            cur.execute("INSERT INTO visitor VALUES (?,?,?)", (
-                IP,
-                datetime.now().replace(microsecond=0),
-                len(keys),
-            ))
+        con.execute("UPDATE visitor SET query_number=? WHERE IP=?",
+                    (queryNum + len(keys), IP))
 
-        cur.execute("UPDATE visitor SET last_query_time=? WHERE IP=?",
+        con.execute("UPDATE visitor SET last_query_time=? WHERE IP=?",
                     (nowTime, IP))
-        conn.commit()
-        cur.close()
+        con.commit()
 
     cmdValue = data['cmdValue']
     parameter = data['parameter']
@@ -410,6 +441,6 @@ def query():
 
 
 if __name__ == '__main__':
-    createTable()
+    initialize()
     server = pywsgi.WSGIServer(('0.0.0.0', 5080), app)
     server.serve_forever()

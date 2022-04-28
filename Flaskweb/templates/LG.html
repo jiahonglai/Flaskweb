@@ -235,25 +235,19 @@
         </div>
 
         <!-- Footer -->
-        <footer class="d-print-none ">
-            <div class="sub-footer ">
-                <div class="container ">
-                    <div class="row ">
-                        <div class="col-2 " id="userpreferences ">
+        <footer class="d-print-none">
+            <div class="sub-footer">
 
-                        </div>
-                        <div class="col-8">
-                            <div class="sub-footer-inner">
-                                <ul>
-                                    <li style="text-align: center;">Copyright ©2020-2025 Institute for Network Sciences
-                                        and Cyberspace All Rights Reserved.
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
+                <div class="sub-footer-inner" style="text-align: center; font-family: 'Times New Roman', Times, serif;font-weight: 800;">
+                    Copyright ©2020-2025 Institute for Network Sciences
+                    and Cyberspace All Rights Reserved.
                 </div>
-            </div>
+                <div class="sub-footer-inner" style="font-family: 'Times New Roman', Times, serif;font-weight: 800;">
+                        总访问：
+                        <span id="visitorNum"></span>
+                </div>
+
+
 
 
         </footer>
@@ -282,6 +276,7 @@
 
         window.onload = function () {
             initMap();
+            getVisitorNum();
             getPageNum();
             listCountry();
         }
@@ -293,6 +288,19 @@
             window.name = "";
         }
 
+        function getVisitorNum() {
+            $.ajax({
+                url: "/visitor_num",
+                type: "GET",
+                success: function (result) {
+                    $("#visitorNum").html(result);
+                },
+                error: function () {
+                    alert("获取访问量失败");
+                }
+            });
+        }
+
         function getPageNum() {
             let cmdValue = document.getElementById("cmdValue");
             cmdValue = cmdValue.options[cmdValue.selectedIndex].value;
@@ -301,9 +309,9 @@
             let country = document.getElementById("country");
             country = country.options[country.selectedIndex].value;
             $.ajax({
-                url: "/pagenum",
+                url: "/page_num",
                 type: "POST",
-                dateType: "json",
+                dataType: "json",
                 data: {
                     data: JSON.stringify({
                         "cmdValue": cmdValue,
@@ -332,6 +340,7 @@
             $.ajax({
                 url: "/page",
                 type: "POST",
+                dataType: "json",
                 data: {
                     data: JSON.stringify({
                         "cmdValue": cmdValue,
@@ -419,7 +428,7 @@
                     document.getElementById("content").hidden = true;
                 },
                 success: function (response) {
-                    if (response['Info']!=null) {
+                    if (response['Info'] != null) {
                         alert(response['Info']);
                         window.location.href = "/";
                     }
