@@ -1,3 +1,4 @@
+from multiprocessing import Process, cpu_count
 import sqlite3
 from gevent import monkey
 
@@ -442,5 +443,5 @@ def query():
 
 if __name__ == '__main__':
     initialize()
-    server = pywsgi.WSGIServer(('0.0.0.0', 5080), app)
+    server = pywsgi.WSGIServer(('127.0.0.1', 8000), app)
     server.serve_forever()
