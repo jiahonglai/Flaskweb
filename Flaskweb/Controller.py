@@ -1,10 +1,10 @@
 import sqlite3
 from gevent import monkey
+from gevent import pywsgi
 
 monkey.patch_all()
 from flask import Flask, request, jsonify, json
 from flask import render_template
-from gevent import pywsgi
 import shelve
 import os
 import urllib3
@@ -431,7 +431,7 @@ def query():
         if (data['showHtml'] == "True"):
             filePath = "./templates/result/" + queryDate
             if (not os.path.exists(filePath)):
-                os.mkdir(filePath)
+                os.makedirs(filePath)
             with open(filePath + "/" + queryTime + ".html", "w") as f:
                 f.write(str(content))
 
@@ -442,5 +442,6 @@ def query():
 
 if __name__ == '__main__':
     initialize()
+    #app.run('127.0.0.1',port=8000)
     server = pywsgi.WSGIServer(('127.0.0.1', 8000), app)
     server.serve_forever()
