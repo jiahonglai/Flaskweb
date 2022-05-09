@@ -7,7 +7,6 @@
     <link rel="icon" href="../static/images/logo_r.png" sizes="32x32">
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-    <link rel="stylesheet" href="../static/assets/css/main.css" />
 
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
         integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
@@ -21,14 +20,7 @@
     <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.1.1/mapbox-gl.css' rel='stylesheet' />
 
     <style>
-        /*表格颜色*/
-        .table-striped>tbody>tr:nth-child(odd)>td,
-        .table-striped>tbody>tr:nth-child(odd)>th {
-            background-color: rgba(244, 236, 253, 0.5);
-        }
-
-        /*表格颜色*/
-
+        /*查询按钮*/
         .button::-moz-focus-inner {
             border: 0;
             padding: 0;
@@ -100,7 +92,6 @@
             padding: 4px 12px;
         }
     </style>
-
 </head>
 
 
@@ -209,12 +200,12 @@
 
             </div>
             <div class="pull-right">
-                <span style="font-size: 16px;vertical-align: -30%">
+                <span style="font-size: 16px; vertical-align: 120%;">
                     共<strong id="totalPage"></strong>页&nbsp&nbsp&nbsp
                 </span>
-                <ul class="pagination" id="pagination">
+                <span class="pagination" id="pagination">
 
-                </ul>
+                </span>
             </div>
         </div>
 
@@ -222,13 +213,14 @@
         <footer class="d-print-none">
             <div class="sub-footer">
 
-                <div class="sub-footer-inner" style="text-align: center; font-family: 'Times New Roman', Times, serif;font-weight: 800;">
+                <div class="sub-footer-inner"
+                    style="text-align: center; font-family: 'Times New Roman', Times, serif;font-weight: 800;">
                     Copyright ©2020-2025 Institute for Network Sciences
                     and Cyberspace All Rights Reserved.
                 </div>
                 <div class="sub-footer-inner" style="font-family: 'Times New Roman', Times, serif;font-weight: 800;">
-                        总访问：
-                        <span id="visitorNum"></span>
+                    总访问：
+                    <span id="visitorNum"></span>
                 </div>
 
 

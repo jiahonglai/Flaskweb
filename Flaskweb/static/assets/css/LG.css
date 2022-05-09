@@ -594,3 +594,444 @@ h3 {
         display: none
     }
 }
+
+@import url("fontawesome-all.min.css");
+@import url("https://fonts.googleapis.com/css?family=Open+Sans:400,400italic,700,700italic|Open+Sans+Condensed:700");
+
+/*
+	TXT by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+*/
+
+html,
+body,
+div,
+span,
+h3,
+a,
+img,
+strong,
+ul,
+table,
+tbody,
+thead,
+tr,
+th,
+footer,
+header,
+nav {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    /* font-size: 100%; */
+    font: inherit;
+    vertical-align: baseline;
+}
+
+footer,
+header,
+nav {
+    display: block;
+}
+
+body {
+    line-height: 1;
+}
+
+ul {
+    list-style: none;
+}
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+body {
+    -webkit-text-size-adjust: none;
+}
+
+input::-moz-focus-inner {
+    border: 0;
+    padding: 0;
+}
+
+input,
+select {
+    -moz-appearance: none;
+    -webkit-appearance: none;
+    -ms-appearance: none;
+    appearance: none;
+}
+
+
+/* Basic */
+
+html {
+    box-sizing: border-box;
+}
+
+*,
+*:before,
+*:after {
+    box-sizing: inherit;
+}
+
+body {
+    background: #f2f5f3;
+}
+
+body,
+input,
+select {
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 400;
+    color: #6b7770;
+    font-size: 13pt;
+    line-height: 2em;
+}
+
+h3 {
+    font-family: 'Open Sans Condensed', sans-serif;
+    font-weight: 700;
+    /* text-transform: uppercase; */
+    color: #6b7770;
+    margin: 0 0 0.5em 0;
+    line-height: 1.3;
+}
+
+h3 {
+    font-size: 1.25em;
+}
+
+a {
+    color: #006376;
+    text-decoration: underline;
+}
+
+a:hover {
+    text-decoration: none;
+}
+
+strong {
+    font-weight: 700;
+    color: #6b7770;
+}
+
+ul,
+table {
+    margin-bottom: 3em;
+}
+
+/* Container */
+
+.container {
+    margin: 0 auto;
+    max-width: 100%;
+    width: 64em;
+}
+
+@media screen and (max-width: 1680px) {
+    .container {
+        width: 75em;
+    }
+}
+
+@media screen and (max-width: 1280px) {
+    .container {
+        width: calc(100% - 100px);
+    }
+}
+
+@media screen and (max-width: 980px) {
+    .container {
+        width: calc(100% - 100px);
+    }
+}
+
+@media screen and (max-width: 736px) {
+    .container {
+        width: calc(100% - 40px);
+    }
+}
+
+@media screen and (max-width: 360px) {
+    .container {
+        width: calc(100% - 30px);
+    }
+}
+
+
+/* Row */
+
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    box-sizing: border-box;
+    align-items: stretch;
+}
+
+.row>* {
+    box-sizing: border-box;
+}
+
+.row {
+    margin-top: -50px;
+    margin-left: -50px;
+}
+
+.row>* {
+    padding: 50px 0 0 50px;
+}
+
+@media screen and (max-width: 1680px) {
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        box-sizing: border-box;
+        align-items: stretch;
+    }
+
+    .row>* {
+        box-sizing: border-box;
+    }
+
+    .row {
+        margin-top: -50px;
+        margin-left: -50px;
+    }
+
+    .row>* {
+        padding: 50px 0 0 50px;
+    }
+}
+
+@media screen and (max-width: 1280px) {
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        box-sizing: border-box;
+        align-items: stretch;
+    }
+
+    .row>* {
+        box-sizing: border-box;
+    }
+
+    .row {
+        margin-top: -40px;
+        margin-left: -40px;
+    }
+
+    .row>* {
+        padding: 40px 0 0 40px;
+    }
+}
+
+@media screen and (max-width: 980px) {
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        box-sizing: border-box;
+        align-items: stretch;
+    }
+
+    .row>* {
+        box-sizing: border-box;
+    }
+
+    .row {
+        margin-top: -50px;
+        margin-left: -50px;
+    }
+
+    .row>* {
+        padding: 50px 0 0 50px;
+    }
+}
+
+@media screen and (max-width: 736px) {
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        box-sizing: border-box;
+        align-items: stretch;
+    }
+
+    .row>* {
+        box-sizing: border-box;
+    }
+
+    .row {
+        margin-top: -20px;
+        margin-left: -20px;
+    }
+
+    .row>* {
+        padding: 20px 0 0 20px;
+    }
+}
+
+@media screen and (max-width: 360px) {
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        box-sizing: border-box;
+        align-items: stretch;
+    }
+
+    .row>* {
+        box-sizing: border-box;
+    }
+
+    .row {
+        margin-top: -15px;
+        margin-left: -15px;
+    }
+
+    .row>* {
+        padding: 15px 0 0 15px;
+    }
+}
+
+/* Button */
+
+button,
+.button {
+    -webkit-appearance: none;
+    display: inline-block;
+    font-family: 'Open Sans Condensed', sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    text-decoration: none;
+    background: #b1ddab;
+    color: #fff;
+    border: 0;
+    line-height: 1em;
+    border-radius: 8px;
+    outline: 0;
+    cursor: pointer;
+    -moz-transition: background-color .2s ease-in-out;
+    -webkit-transition: background-color .2s ease-in-out;
+    -o-transition: background-color .2s ease-in-out;
+    -ms-transition: background-color .2s ease-in-out;
+    transition: background-color .2s ease-in-out;
+    font-size: 1.25em;
+    padding: 0.85em 1.85em;
+    text-align: center;
+}
+
+button:hover,
+.button:hover {
+    background: #c1edbb;
+}
+
+button:active,
+.button:active {
+    background: #a1cd9b;
+}
+
+
+/* List */
+
+ul {
+    list-style: disc;
+    padding-left: 1em;
+}
+
+/* Tables */
+
+table {
+    width: 100%;
+}
+
+/* Nav */
+
+body {
+    padding-top: 3.25em;
+}
+
+
+/* XLarge */
+
+@media screen and (max-width: 1680px) {
+
+    /* Basic */
+    body,
+    input,
+    select {
+        font-size: 12pt;
+        line-height: 1.75em;
+    }
+}
+
+
+/* Large */
+
+@media screen and (max-width: 1280px) {
+
+    /* Basic */
+    body,
+    input,
+    select {
+        font-size: 11pt;
+    }
+}
+
+
+/* Medium */
+
+@media screen and (max-width: 980px) {
+
+    /* Basic */
+    html,
+    body {
+        overflow-x: hidden;
+    }
+
+    /* Nav */
+    body {
+        padding-top: 44px;
+    }
+}
+
+
+/* Small */
+
+@media screen and (max-width: 736px) {
+
+    /* Basic */
+    body,
+    input,
+    select {
+        font-size: 11pt;
+    }
+
+    /* Button */
+    button,
+    .button {
+        display: block;
+        width: 100%;
+    }
+
+}
+
+
+/* Small */
+
+@media screen and (max-width: 360px) {
+
+    /* Basic */
+    body,
+    input,
+    select {
+        font-size: 10pt;
+    }
+}
+
+/*表格颜色*/
+.table-striped>tbody>tr:nth-child(odd)>td,
+.table-striped>tbody>tr:nth-child(odd)>th {
+    background-color: rgba(244, 236, 253, 0.5);
+}
