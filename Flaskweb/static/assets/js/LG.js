@@ -39,14 +39,12 @@ function getPageNum() {
     $.ajax({
         url: "/page_num",
         type: "POST",
-        dataType: "json",
-        data: {
-            data: JSON.stringify({
-                "cmdValue": cmdValue,
-                "area": area,
-                "country": country,
-            })
-        },
+        contentType: "application/json",
+        data: JSON.stringify({
+            "cmdValue": cmdValue,
+            "area": area,
+            "country": country,
+        }),
         success: function (result) {
             pageNum = result;
             $("#totalPage").html(pageNum);
@@ -68,15 +66,13 @@ function showInfo(page) {
     $.ajax({
         url: "/page",
         type: "POST",
-        dataType: "json",
-        data: {
-            data: JSON.stringify({
-                "cmdValue": cmdValue,
-                "area": area,
-                "country": country,
-                "page": page
-            })
-        },
+        contentType: "application/json",
+        data: JSON.stringify({
+            "cmdValue": cmdValue,
+            "area": area,
+            "country": country,
+            "page": page
+        }),
         success: function (result) {
             if (markers.length > 0) { //清除之前的标记点
                 for (let i in markers) markers[i].remove();
@@ -141,15 +137,14 @@ function query(key) {
     $.ajax({
         type: "POST",
         url: "/api/query",
-        data: {
-            data: JSON.stringify({
+        contentType: "application/json",
+        data: JSON.stringify({
                 "keys": keys,
                 "cmdValue": cmdValue,
                 "parameter": parameter,
                 "type": type,
                 "showHtml": "True",
-            })
-        },
+            }),
         dataType: "json",
         beforeSend: function () {
             document.getElementById("prompt").hidden = false;

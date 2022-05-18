@@ -36,7 +36,7 @@ pageSize = 30  # 一页显示30条记录
 
 @app.route("/page_num", methods=["POST"])
 def getPageNum():
-    data = json.loads(request.form.get('data'))
+    data = request.get_json()
     conditions = ['cmdValue', 'area', 'country']
     recordNum = 0
     with shelve.open("LGData", "r") as db:  #必须以只读方式，否则多用户会报错
@@ -65,7 +65,7 @@ def getPageNum():
 
 @app.route("/page", methods=["POST"])
 def getPage():
-    data = json.loads(request.form.get('data'))
+    data = request.get_json()
     conditions = ['cmdValue', 'area', 'country']
     recordNum = 0
     recordList = []
@@ -322,11 +322,11 @@ def countVisitor():
     global visitorNum
     with sqlite3.connect("Web.db") as con:
         IP = request.remote_addr
-        record = con.execute("SELECT * FROM visitor WHERE IP=?",
+        record = con.execute("SELECT last_visit_time FROM visitor WHERE IP=?",
                              (IP, )).fetchone()
         nowTime = datetime.now().replace(microsecond=0)
         if (record != None):
-            lastVisitTime = datetime.strptime(record[3], "%Y-%m-%d %H:%M:%S")
+            lastVisitTime = datetime.strptime(record[0], "%Y-%m-%d %H:%M:%S")
             dayDelta = nowTime.date() - lastVisitTime.date()
             if (dayDelta.days > 0):
                 visitorNum += 1
@@ -358,16 +358,16 @@ totalQueryNum = 100  #一天最多查询测量点个数
 def query():
     queryDate = str(date.today())
     queryTime = str(datetime.now())[11:]
-    data = json.loads(request.form.get('data'))
+    data = request.get_json()
     keys = data['keys']
     with sqlite3.connect("Web.db") as con:
         IP = request.remote_addr
-        record = con.execute("SELECT * FROM visitor WHERE IP=?",
+        record = con.execute("SELECT last_query_time, query_number FROM visitor WHERE IP=?",
                              (IP, )).fetchone()
         nowTime = datetime.now().replace(microsecond=0)
-        queryNum = record[2]
+        queryNum = record[1]
         if (queryNum != 0):
-            lastQueryTime = datetime.strptime(record[1], "%Y-%m-%d %H:%M:%S")
+            lastQueryTime = datetime.strptime(record[0], "%Y-%m-%d %H:%M:%S")
             secondDelta = nowTime - lastQueryTime
             if (secondDelta.seconds < deltaTime):
                 return jsonify({'Info': '两次查询间隔应大于60秒'})
@@ -442,6 +442,5 @@ def query():
 
 if __name__ == '__main__':
     initialize()
-    #app.run('127.0.0.1',port=8000)
-    server = pywsgi.WSGIServer(('127.0.0.1', 8000), app)
+    server = pywsgi.WSGIServer(('0.0.0.0', 5080), app)
     server.serve_forever()
