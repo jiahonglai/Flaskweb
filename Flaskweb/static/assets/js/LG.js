@@ -112,7 +112,7 @@ function showInfo(page) {
     });
 }
 
-function query(key) {
+function query() {
     let routers = document.getElementsByName("routers");
     keys = [];
     checkedNum = 0;
