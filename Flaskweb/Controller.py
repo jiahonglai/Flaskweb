@@ -235,7 +235,10 @@ def query():
             info['requestPath'] = record['requestPath']
             info['cmdValue'] = record['cmdValue'][cmdValue]
             api = API(info)
-            api.run(parameter)
+            try:
+                api.run(parameter)
+            except Exception as e:
+                print(e)
 
             content += "URL: &nbsp" + info['site']
             content += "&nbsp&nbsp&nbsp router: &nbsp" + info[

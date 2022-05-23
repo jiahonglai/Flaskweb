@@ -1,3 +1,7 @@
+import urllib3
+
+urllib3.disable_warnings()
+
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
@@ -5,8 +9,9 @@ from typing import List
 import re
 import json
 
+
 class API:
-    
+
     def __init__(self, info):
         self.url = info['site']
         self.headers = {
@@ -122,7 +127,7 @@ class API:
         # package data
         self.data[self.cmdKey] = self.cmdValue
         self.data[self.hostKey] = target
-        if type(self.routerKey) != '':
+        if (self.routerKey != ""):
             self.data[self.routerKey] = self.routerValue
 
         if re.search('get', self.method, re.IGNORECASE):

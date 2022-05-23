@@ -10,10 +10,11 @@ class BGPpathAnalyzer:
 
     def __init__(self, info):
         self.key = {}
-        self.key[info['Key']] = {'as': '', 'aspath': [], 'bestaspath': []}
+        self.key[info['Key']] = {'aspath': [], 'bestaspath': []}
         if (pd.isnull(info['Responsecontent'])):
-            self.key = "Analyze Error!"
+            self.key = "Parse Failure"
             return
+
         if ('{"result":' == str(info['Responsecontent'])[:10]):
             doc = str(json.loads(info['Responsecontent'])['result']).lower()
         elif ('https://lg.lasagna.dev' in info['Key']):
@@ -61,7 +62,7 @@ class BGPpathAnalyzer:
                 or 'rate limit exceeded' in doc
                 or 'please enter the ip in a cidr format' in doc
                 or 'you have too many active queries' in doc):
-            self.key = "Analyze Error!"
+            self.key = "Parse Failure"
             return
 
         ##剔除掉一些无关的网页元素
@@ -119,6 +120,8 @@ class BGPpathAnalyzer:
             aspath = self.specialconectrj(doc)
         elif ('https://lg.nmmn.com' in info['Key']):
             aspath = self.specialnmmn(doc)
+        elif ('http://lg.sentrian.net.au' in info['Key']):
+            aspath = self.specialsentrian(doc)
         else:
             aspath = self.parseaspath(doc)
 
@@ -146,6 +149,18 @@ class BGPpathAnalyzer:
         else:
             if ('8.8.8.0/24' in doc):
                 print(info['Key'])
+
+    def specialsentrian(self, doc):
+        listaspath = []
+        pattern = re.compile(r'bgp-as-path="\d+(,\d+)*"')
+        aspath = pattern.search(doc)
+        doc1 = doc
+        while (aspath):
+            list1 = aspath.group()
+            listaspath.append(re.findall('(\d+)', list1, re.S | re.M))
+            doc1 = doc1[aspath.end():]
+            aspath = pattern.search(doc1)
+        return listaspath
 
     def specialbirdready(self, doc):
         listaspath = []
@@ -182,7 +197,7 @@ class BGPpathAnalyzer:
     def specialcdtcase(self, doc):
         listaspath = []
 
-        pattern = re.compile(r'none\s+(0|-)(\n)*\s+(\d+ )+\s*(-|\n)')
+        pattern = re.compile(r'none\s+(0|1|-)(\n)*\s+(\d+ )+\s*(-|\n)')
         aspath = pattern.search(doc)
         doc1 = doc
         while (aspath):
@@ -190,6 +205,8 @@ class BGPpathAnalyzer:
             list1 = re.sub('\s+', ' ', list1[:-1]).strip()
             if ('none 0' in list1):
                 listaspath.append(list1.split('none 0')[1].strip().split(' '))
+            elif ('none 1' in list1):
+                listaspath.append(list1.split('none 1')[1].strip().split(' '))
             elif ('none -' in list1):
                 listaspath.append(list1.split('none -')[1].strip().split(' '))
             doc1 = doc1[aspath.end():]
@@ -218,43 +235,45 @@ class BGPpathAnalyzer:
             ),
             re.compile(
                 r'(as-path|as_path)\s*(:)*\s*(\d+ )*(\d+)+\s*\n*\s*(</b>|,|bgp|</code>|communities)'
-            ),  #as-path 1221 15169,  AS_PATH: 15169              COMMUNITIES
+            ),
+            # # as-path 1221 15169,  AS_PATH: 15169 COMMUNITIES
             re.compile(
                 r'bgp.as_path:\s*(\d+ )*(\d+)+\s*(<br|,\s*bgp.large_community)'
-            ),  #bgp.as_path: 15169 <br
+            ),  # bgp.as_path: 15169 <br
             re.compile(
-                r'bgp.as_path:\s*(\d+\s*)*(<a (.(?!<a))*?>\s*(\d+)\s*</a>\s*)*(\d+\s*)*bgp.next_hop'
-            ),  #BGP.as_path: <a href=""/whois?q=15169"" class=""whois"">15169</a>
+                r'bgp.as_path:\s*((\s*\d+\s*)|(<a (.(?!<a))*?>\s*(\d+)\s*</a>\s*))*bgp.next_hop'
+            ),
+            # BGP.as_path: <a href=""/whois?q=15169"" class=""whois"">15169</a>
             re.compile(
-                r'refresh epoch \d+\s*\n*\s*(\d+\s*)*(<a (.(?!<a))*?>\s*(\d+)\s*</a>\s*)*(\d+\s*)*\n*\s*(?:[0-9]{1,3}\.){3}[0-9]{1,3}'
-            ),  #refresh epoch 11  202032 <A onMouseOver=""window.status='InternetONE (RIPE)'; return true"" HREF=""https://stat.ripe.net/44160"" TARGET=_lookup>44160</A> <A onMouseOver=""window.status='GOOGLE (ARIN)'; return true"" HREF=""http://www.sixxs.net/tools/whois/?AS15169"" TARGET=_lookup>15169</A>     77.220.74.101
+                r'refresh epoch \d+\s*\n*((\s*\d+\s*)|(<a (.(?!<a))*?>\s*(\d+)\s*</a>\s*))*\n*\s*(?:[0-9]{1,3}\.){3}[0-9]{1,3}'
+            ),
+            # refresh epoch 11  202032 <A onMouseOver=""window.status='InternetONE (RIPE)'; return true"" HREF=""https://stat.ripe.net/44160"" TARGET=_lookup>44160</A> <A onMouseOver=""window.status='GOOGLE (ARIN)'; return true"" HREF=""http://www.sixxs.net/tools/whois/?AS15169"" TARGET=_lookup>15169</A>     77.220.74.101
+            # re.compile(r'as path:\s+(\d+\s*)*(<a (.(?!<a))*?>\s*(\d+)\s*</a>\s*)*(\d+\s*)*[ie?](,)* '),
             re.compile(
-                r'as path:\s+(\d+\s*)*(<a (.(?!<a))*?>\s*(\d+)\s*</a>\s*)*(\d+\s*)*[ie](,)* '
-            ),  #AS path: 1221 <A title=""GOOGLE (ARIN)"" HREF=""http://whois.arin.net/rest/asn/AS15169/pft"" TARGET=_lookup>15169</A> I,
+                r'as path:\s+((\s*\d+\s*)|(<a (.(?!<a))*?>\s*(\d+)\s*</a>\s*))*[ie?](,)* '
+            ),
+            # AS path: 1221 <A title=""GOOGLE (ARIN)"" HREF=""http://whois.arin.net/rest/asn/AS15169/pft"" TARGET=_lookup>15169</A> I,
             re.compile(
-                r'bgp-as-path="\s*(\d+\s*)*(<a (.(?!<a))*?>\s*(\d+)\s*</a>\s*(,)*\s*)*(\d+\s*)*"'
-            ),  #bgp-as-path="<a href="http://noc.hsdn.org/aswhois/as15169" target="_blank">15169</a>"
+                r'bgp-as-path=(\")*\s*(\d+\s*)*(<a (.(?!<a))*?>\s*(\d+)\s*</a>\s*(,)*\s*)*(\d+\s*)*'
+            ),
+            # bgp-as-path="<a href="http://noc.hsdn.org/aswhois/as15169" target="_blank">15169</a>"
+            # re.compile(r'(<a (.(?!<a))*?>\s*(\d+)\s*</a>\s*)+(\d+\s*)*\n*\s*(i|e|origin igp)(,)* '),
+            # <a href=""https://bgp.he.net/AS57695"" target=""_blank"">57695</a> <a href=""https://bgp.he.net/AS15169"" target=""_blank"">15169</a> 2110 i,
             re.compile(
-                r'(<a (.(?!<a))*?>\s*(\d+)\s*</a>\s*)+(\d+\s*)*(<br>)*\n*\s*(?:[0-9]{1,3}\.){3}[0-9]{1,3}'
-            ),  # <a href=""https://bgp.he.net/AS57695"" target=""_blank"">57695</a> <a href=""https://bgp.he.net/AS15169"" target=""_blank"">15169</a> 2110 166.1.1.1,
-            re.compile(
-                r'(<a (.(?!<a))*?>\s*(\d+)\s*</a>\s*)+(\d+\s*)*\n*\s*(i|e|origin igp)(,)* '
-            ),  # <a href=""https://bgp.he.net/AS57695"" target=""_blank"">57695</a> <a href=""https://bgp.he.net/AS15169"" target=""_blank"">15169</a> 2110 i,
+                r'((\s\d+)|(\s*<a (.(?!<a))*?>\s*(\d+)\s*</a>))+\s*(\s|<br>|\n)+\s*\n*\s*(\?|i|e|origin igp|(?:[0-9]{1,3}\.){3}[0-9]{1,3})(,)*\s'
+            ),
+            # <a href=""https://bgp.he.net/AS57695"" target=""_blank"">57695</a> <a href=""https://bgp.he.net/AS15169"" target=""_blank"">15169</a> 2110 166.1.1.1,
             re.compile(
                 r'(<a (.(?!<a))*?>\s*(\d+)\s*\([A-Za-z]+\)</a>\s*)+(\d+\s*)*\n*\s*(community|origin-as)'
-            ),  # <a onmouseover="window.status='google (arin)'; return true">15169(google)</a>    community:
-            re.compile(
-                r'\s+(\d+ )*(\d+)+\s*(<br>)*\n*\s+(?:[0-9]{1,3}\.){3}[0-9]{1,3}'
-            ),  #15169\n 201.1.1.1
-            re.compile(r'(\d+ )+[ie](,)*\s+'),  #15169 i,
+            ),
+            # <a onmouseover="window.status='google (arin)'; return true">15169(google)</a>    community:
             re.compile(
                 r'(\s+[A-Za-z0-9_-]+\s\[\d+\])+\s*(?:[0-9]{1,3}\.){3}[0-9]{1,3}'
             ),  # google [15169] 111.22.2.2
             re.compile(
-                r'\s+(\d+ )*(\d+)+\s*<br />\s+(?:[0-9]{1,3}\.){3}[0-9]{1,3}'
-            ),  # 1221 15269 <br /> 1.1.1.1
-            re.compile(r'\s+(\d+ )*(\d+)+\s*<br>\s+origin igp'
-                       ),  # <p>  15169<br>        origin igp,
+                r'((\s\d+)|(\s*<a (.(?!<a))*?>\s*(\d+)\s*</a>))+\s*<br />\s+(?:[0-9]{1,3}\.){3}[0-9]{1,3}'
+            ),
+            # 1221 15269 <br /> 1.1.1.1
         ]
 
         if (not re.compile(
@@ -268,6 +287,7 @@ class BGPpathAnalyzer:
                 while (aspath):
                     list1 = aspath.group()
                     doc = doc.replace(list1, ' ')
+
                     if i == 0:
                         listaspath.append(
                             re.sub('\s+', ' ',
@@ -283,6 +303,7 @@ class BGPpathAnalyzer:
                                            ' ', list1.replace(
                                                '\n',
                                                ' ')))).strip().split(' '))
+
                     elif i == 2:
                         listaspath.append(
                             re.sub(
@@ -291,63 +312,70 @@ class BGPpathAnalyzer:
                                        list1.split('bgp.as_path:')
                                        [1])).strip().split(' '))
                     elif i == 3:
-                        list1 = re.sub(
-                            '\s+', ' ',
-                            re.sub('bgp.as_path:', ' ',
-                                   re.sub('bgp.next_hop', ' ',
-                                          list1))).strip()
-                        if ('<a' in list1 and '</a' in list1):
-                            left = list1.split('<a')[0].strip().split(' ')
-                            right = list1.split(
-                                '</a>')[len(list1.split('</a>')) -
-                                        1].strip().split(' ')
-                            middle = re.findall(r'>\s*(\d+)\s*</a>', list1,
-                                                re.S | re.M)
-                            listaspath.append(
-                                list(filter(None, left + middle + right)))
-                        else:
-                            listaspath.append(
-                                list(filter(None, list1.split(' '))))
-                    elif i == 4:
+
                         list1 = re.sub(
                             '\s+', ' ',
                             re.sub(
-                                'refresh epoch \d+\s*\n*\s*', ' ',
+                                'bgp.as_path:', ' ',
+                                re.sub('bgp.next_hop', ' ',
+                                       list1.replace('\n', ' '))))
+
+                        newpath = []
+                        patternrefresh = re.compile(r'[\s|>](\d+?)[\s|<]')
+                        middle = patternrefresh.search(list1)
+                        while (middle):
+                            newlist1 = middle.group()
+                            ASN = re.compile('\d+').search(newlist1)
+                            newpath.append(ASN.group())
+                            list1 = list1[middle.end() - 1:]
+                            middle = patternrefresh.search(list1)
+                        listaspath.append(newpath)
+
+                    elif i == 4:
+
+                        list1 = re.sub(
+                            '\s+', ' ',
+                            re.sub(
+                                'refresh epoch \d+', ' ',
                                 re.sub('(?:[0-9]{1,3}\.){3}[0-9]{1,3}', ' ',
-                                       list1.replace('\n', ' ')))).strip()
-                        if ('<a' in list1 and '</a' in list1):
-                            left = list1.split('<a')[0].strip().split(' ')
-                            right = list1.split(
-                                '</a>')[len(list1.split('</a>')) -
-                                        1].strip().split(' ')
-                            middle = re.findall(r'>\s*(\d+)\s*</a>', list1,
-                                                re.S | re.M)
-                            listaspath.append(
-                                list(filter(None, left + middle + right)))
-                        else:
-                            listaspath.append(
-                                list(filter(None, list1.split(' '))))
+                                       list1.replace('\n', ' '))))
+
+                        newpath = []
+                        patternrefresh = re.compile(r'[\s|>](\d+?)[\s|<]')
+                        middle = patternrefresh.search(list1)
+                        while (middle):
+                            newlist1 = middle.group()
+
+                            ASN = re.compile('\d+').search(newlist1)
+                            newpath.append(ASN.group())
+                            list1 = list1[middle.end() - 1:]
+                            middle = patternrefresh.search(list1)
+                        listaspath.append(newpath)
+
                     elif i == 5:
                         list1 = re.sub(
                             '\s+', ' ',
-                            re.sub('[ie](,)* ', ' ',
-                                   re.sub('as path:', ' ', list1))).strip()
-                        if ('<a' in list1 and '</a' in list1):
-                            left = list1.split('<a')[0].strip().split(' ')
-                            right = list1.split(
-                                '</a>')[len(list1.split('</a>')) -
-                                        1].strip().split(' ')
-                            middle = re.findall(r'>\s*(\d+)\s*</a>', list1,
-                                                re.S | re.M)
-                            listaspath.append(
-                                list(filter(None, left + middle + right)))
-                        else:
-                            listaspath.append(
-                                list(filter(None, list1.split(' '))))
+                            re.sub('[ie?](,)* ', ' ',
+                                   re.sub('as path:', ' ', list1)))
+
+                        newpath = []
+                        patternrefresh = re.compile(r'[\s|>](\d+?)[\s|<]')
+                        middle = patternrefresh.search(list1)
+                        while (middle):
+                            newlist1 = middle.group()
+                            ASN = re.compile('\d+').search(newlist1)
+                            newpath.append(ASN.group())
+                            list1 = list1[middle.end() - 1:]
+                            middle = patternrefresh.search(list1)
+
+                        listaspath.append(newpath)
+
                     elif i == 6:
+
                         list1 = re.sub(
-                            '\s+', ' ', re.sub('bgp-as-path="', ' ',
-                                               list1[:-1])).strip()
+                            '\s+', ' ', re.sub(r'bgp-as-path=(\")*', ' ',
+                                               list1)).strip()
+
                         if ('<a' in list1 and '</a' in list1):
                             left = list1.split('<a')[0].strip().split(' ')
                             right = list1.split(
@@ -360,57 +388,85 @@ class BGPpathAnalyzer:
                         else:
                             listaspath.append(
                                 list(filter(None, list1.split(' '))))
+
                     elif i == 7:
+
                         list1 = re.sub(
                             '\s+', ' ',
                             re.sub(
-                                '(?:[0-9]{1,3}\.){3}[0-9]{1,3}', ' ',
-                                list1.replace('\n',
-                                              ' ').replace('<br>',
-                                                           ' '))).strip()
-                        left = re.findall(r'>\s*(\d+)\s*</a>', list1,
-                                          re.S | re.M)
-                        right = list1.split('</a>')[len(list1.split('</a>')) -
-                                                    1].strip().split(' ')
-                        listaspath.append(list(filter(None, left + right)))
+                                '(\?|i|e|origin igp|(?:[0-9]{1,3}\.){3}[0-9]{1,3})(,)*\s',
+                                ' ',
+                                list1.replace('\n', ' ').replace('<br>', ' ')))
+                        newpath = []
+                        patternrefresh = re.compile(r'[\s|>](\d+?)[\s|<]')
+                        middle = patternrefresh.search(list1)
+                        ##100，10，0，5，30，60，300 开头的是Med
+                        while (middle):
+                            newlist1 = middle.group()
+                            ASN = re.compile('\d+').search(newlist1)
+                            newpath.append(ASN.group())
+                            list1 = list1[middle.end() - 1:]
+                            middle = patternrefresh.search(list1)
+
+                        if (' med ' in doc and newpath[0] in [
+                                '111', '25', '150', '41', '40', '45', '120',
+                                '211', '130', '1030', '931', '1679', '1000',
+                                '2000', '1320', '2', '49', '53', '13', '100',
+                                '10', '20', '0', '5', '30', '60', '300', '80',
+                                '110', '400', '233', '250', '350', '1010',
+                                '1031', '1120', '1499', '310', '360', '1204',
+                                '1144', '160', '1072', '1254', '455', '550',
+                                '425', '475', '1300', '540', '535', '1020',
+                                '1139', '527', '1255', '1080', '245', '1414',
+                                '1336', '1860', '1100', '595', '380', '233'
+                        ]):
+                            del newpath[0]
+
+                        elif ('2022' == newpath[0]):
+                            del newpath[0]
+                        listaspath.append(newpath)
+
                     elif i == 8:
-                        list1 = re.sub(
-                            '\s+', ' ',
-                            re.sub('(i|e|origin igp)(,)* ', ' ',
-                                   list1.replace('\n', ' '))).strip()
-                        left = re.findall(r'>\s*(\d+)\s*</a>', list1,
-                                          re.S | re.M)
-                        right = list1.split('</a>')[len(list1.split('</a>')) -
-                                                    1].strip().split(' ')
-                        listaspath.append(list(filter(None, left + right)))
-                    elif i == 9:
                         listaspath.append(
                             re.findall(r'>\s*(\d+)\s*\([A-Za-z]+\)<', list1,
                                        re.S | re.M))
-                    elif i == 10:
-                        listaspath.append(
-                            re.sub(
-                                '\s+', ' ',
-                                list1.replace('\n', ' ').replace(
-                                    '<br>', ' ')).strip().split(' ')[:-1])
-                    elif i == 11:
-                        if ('0 ' in list1):
-                            list1 = list1.split('0 ')[1]
-                        listaspath.append(
-                            re.sub('[ie](,)*\s+', ' ',
-                                   list1).strip().split(' '))
-                    elif i == 12:
+
+                    elif i == 9:
                         listaspath.append(
                             re.findall(r'\[(\d+)\]', list1, re.S | re.M))
-                    elif i == 13:
-                        listaspath.append(
+                    elif i == 10:
+                        list1 = re.sub(
+                            '\s+', ' ',
                             re.sub(
-                                '\s+', ' ',
-                                list1.split('<br />')[0]).strip().split(' '))
-                    elif i == 14:
-                        listaspath.append(
-                            re.sub('\s+', ' ',
-                                   list1.split('<br>')[0]).strip().split(' '))
+                                '((?:[0-9]{1,3}\.){3}[0-9]{1,3})', ' ',
+                                list1.replace('\n',
+                                              ' ').replace('<br />', ' ')))
+                        newpath = []
+                        patternrefresh = re.compile(r'[\s|>](\d+?)[\s|<]')
+                        middle = patternrefresh.search(list1)
+                        ##100，10，0，5，30，60，300 开头的是Med
+                        while (middle):
+                            newlist1 = middle.group()
+                            ASN = re.compile('\d+').search(newlist1)
+                            newpath.append(ASN.group())
+                            list1 = list1[middle.end() - 1:]
+                            middle = patternrefresh.search(list1)
+
+                        if (' med ' in doc and newpath[0] in [
+                                '111', '25', '150', '41', '40', '45', '120',
+                                '211', '130', '1030', '931', '1679', '1000',
+                                '2000', '1320', '2', '49', '53', '13', '100',
+                                '10', '20', '0', '5', '30', '60', '300', '80',
+                                '110', '400', '233', '250', '350', '1010',
+                                '1031', '1120', '1499', '310', '360', '1204',
+                                '1144', '160', '1072', '1254', '455', '550',
+                                '425', '475', '1300', '540', '535', '1020',
+                                '1139', '527', '1255', '1080', '245', '1414',
+                                '1336', '1860', '1100', '595', '380', '233'
+                        ]):
+                            del newpath[0]
+                            del newpath[0]
+                        listaspath.append(newpath)
 
                     doc1 = doc1[aspath.end():]
                     aspath = pattern.search(doc1)
