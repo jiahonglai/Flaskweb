@@ -21,6 +21,7 @@ class API:
             'zh-CN,zh;q=0.9',
             'cache-control':
             'max-age=0',
+            'Connection': 'keep-alive',
             'accept':
             'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8'
         }

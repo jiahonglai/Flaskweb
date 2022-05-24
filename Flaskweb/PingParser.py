@@ -1,5 +1,6 @@
 import re
 import shelve
+import requests
 from API import API
 
 
@@ -23,15 +24,17 @@ class PingParser:
 
     @staticmethod
     def getTotalPacket(doc):
-        totalPacket = re.findall("(\d+) packets transmitted", doc)
+        totalPacket = re.findall("(\d+) packets transmitted", doc,
+                                 re.IGNORECASE)
         if (totalPacket == []):
-            totalPacket = re.findall("(\d+) packet s transmitted", doc)
+            totalPacket = re.findall("(\d+) packet s transmitted", doc,
+                                     re.IGNORECASE)
         if (totalPacket == []):
-            totalPacket = re.findall("Sending (\d+)", doc)
+            totalPacket = re.findall("Sending (\d+)", doc, re.IGNORECASE)
         if (totalPacket == []):
-            totalPacket = re.findall("sen[td] (\d+)", doc)
+            totalPacket = re.findall("sen[td] (\d+)", doc, re.IGNORECASE)
         if (totalPacket == []):
-            totalPacket = re.findall("(\d+) packets", doc)
+            totalPacket = re.findall("(\d+) packets", doc, re.IGNORECASE)
         if (totalPacket == []):
             return ""
         return totalPacket[0]
@@ -45,23 +48,23 @@ class PingParser:
                 return ""
             successRate = list(map(int, list(successRate[0])))
             successRate = successRate[1] * 100 // successRate[0]
-            return str(successRate)+"%"
-        
-        if ("lg.infortek.net.br" in url):
+            return str(successRate) + "%"
+
+        if ("lg.infortek.net.br" in url or "lg.openitgroup.com.br" in url):
             successRate = re.findall("(\d+) packet s transmitted (\d+)", doc)
             if (successRate == []):
                 return ""
             successRate = list(map(int, list(successRate[0])))
             successRate = successRate[1] * 100 // successRate[0]
-            return str(successRate)+"%"
-        
-        if ("waw-lg.as35908.net" in url):
+            return str(successRate) + "%"
+
+        if ("as35908.net" in url or "customer.vpls.net" in url):
             successRate = re.findall("send (\d+) recv (\d+)", doc)
             if (successRate == []):
                 return ""
             successRate = list(map(int, list(successRate[0])))
             successRate = successRate[1] * 100 // successRate[0]
-            return str(successRate)+"%"
+            return str(successRate) + "%"
 
         successFlag = True
         successRate = re.findall("Success rate is (\d+)", doc)
@@ -70,6 +73,9 @@ class PingParser:
             successFlag = False
         if (successRate == []):
             successRate = re.findall("packet loss (\d+) min", doc)
+            successFlag = False
+        if (successRate == []):
+            successRate = re.findall("(\d+) loss", doc)
             successFlag = False
         if (successRate == []):
             return ""
@@ -82,7 +88,7 @@ class PingParser:
     @staticmethod
     def getRTT(doc, url):
         RTT = re.findall(
-            "min avg max [a-z]*dev ([0-9]+\.?[0-9]*) ([0-9]+\.?[0-9]*) ([0-9]+\.?[0-9]*) ([0-9]+\.?[0-9]*) ms",
+            "min avg max .*dev ([0-9]+\.?[0-9]*) ([0-9]+\.?[0-9]*) ([0-9]+\.?[0-9]*) ([0-9]+\.?[0-9]*) ms",
             doc)
         if (RTT == []):
             RTT = re.findall(
@@ -100,6 +106,19 @@ class PingParser:
             RTT = re.findall(
                 "min ([0-9]+\.?[0-9]*) avg ([0-9]+\.?[0-9]*) max ([0-9]+\.?[0-9]*) [a-z]*dev ([0-9]+\.?[0-9]*)",
                 doc)
+        if (RTT == []):
+            RTT = re.findall(
+                "Minimum ([0-9]+\.?[0-9]*) ms Maximum ([0-9]+\.?[0-9]*) ms Average ([0-9]+\.?[0-9]*) ms",
+                doc)
+            if (RTT != []):
+                RTT = list(RTT[0])
+                tmp = RTT[1]
+                RTT[1] = RTT[2]
+                RTT[2] = tmp
+                tmp = list()
+                tmp.append(tuple(RTT))
+                RTT = tmp
+
         if (RTT == []):
             return ""
 
@@ -134,33 +153,31 @@ class PingParser:
 
 
 if __name__ == "__main__":
-    pingParser = PingParser()
-    '''with open("./test.html", "r") as f:
+    '''pingParser = PingParser()
+    with open("./test.html", "r") as f:
         s = ""
         f = f.readlines()
         for i in f:
             s += i
-        info = {
-                'url': "lg.infortek.net.br",
-                'resp': s,
-                'status_code': 200
-            }
+        info = {'url': "https:/run/", 'resp': s, 'status_code': 200}
         print(pingParser.parse(info))
-    exit()'''
+    exit()
     k = 0
     f = 0
-    with shelve.open("LGData", "w") as db:  #必须以只读方式，否则多用户会报错
+    with shelve.open("LGData", "r") as db:  #必须以只读方式，否则多用户会报错
         for key in db:
             f += 1
             record = db[key]
             info = {}
             info['site'], info['routerValue'] = key.split("|")
-            if (f == 826):
+            if ("lg.k2telecom.net.br" in info['site']):
+                print(key)
                 k = 1
+            else:
+                k = 0
 
             if (k == 0): continue
             if ("looking.house" in info['site']): continue
-            print(f)
             info['routerKey'] = record['routerKey']
             info['method'] = record['method']
             info['hostKey'] = record['hostKey']
@@ -170,7 +187,7 @@ if __name__ == "__main__":
             info['cmdValue'] = record['cmdValue']['ping']
             api = API(info)
             try:
-                api.run("8.8.8.8")
+                api.run("47.93.47.75")
             except Exception as e:
                 print(e)
             info = {
@@ -178,5 +195,6 @@ if __name__ == "__main__":
                 'resp': api.resp,
                 'status_code': api.reqstatus_code
             }
+            print(api.resp)
 
-            print(pingParser.parse(info))
+            print(pingParser.parse(info))'''

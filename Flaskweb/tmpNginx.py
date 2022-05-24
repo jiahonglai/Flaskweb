@@ -12,6 +12,7 @@ import urllib3
 urllib3.disable_warnings()
 from datetime import datetime, date
 from API import API
+from PingParser import PingParser
 from ShowBGPAnalyzer import BGPpathAnalyzer
 from TracerouteParser import TracerouteParser
 
@@ -171,6 +172,7 @@ def countVisitor():
         with open("VisitorNumber.txt", "w") as f:
             f.write(str(visitorNum))
 
+
 @app.route("/visitor_num", methods=["GET"])
 def getVisitorNum():
     return jsonify(visitorNum)
@@ -188,8 +190,9 @@ def query():
     keys = data['keys']
     with sqlite3.connect("Web.db") as con:
         IP = request.headers.get('X-Forwarded-For')
-        record = con.execute("SELECT last_query_time, query_number FROM visitor WHERE IP=?",
-                             (IP, )).fetchone()
+        record = con.execute(
+            "SELECT last_query_time, query_number FROM visitor WHERE IP=?",
+            (IP, )).fetchone()
         nowTime = datetime.now().replace(microsecond=0)
         queryNum = record[1]
         if (queryNum != 0):
@@ -234,15 +237,26 @@ def query():
             info['requestPath'] = record['requestPath']
             info['cmdValue'] = record['cmdValue'][cmdValue]
             api = API(info)
-            api.run(parameter)
+            try:
+                api.run(parameter)
+            except Exception as e:
+                print(e)
 
             content += "URL: &nbsp" + info['site']
             content += "&nbsp&nbsp&nbsp router: &nbsp" + info[
                 'routerValue'] + '<br><br>'
-            if (cmdValue == "ping" or data['type'] == "raw"):
+            if (data['type'] == "raw"):
                 content += api.resp
             else:
-                if (cmdValue == "bgp"):
+                if (cmdValue == "ping"):
+                    pingInfo = {
+                        'url': api.url,
+                        'resp': api.resp,
+                        'status_code': api.reqstatus_code
+                    }
+                    pingParser = PingParser()
+                    content += pingParser.parse(pingInfo)
+                elif (cmdValue == "bgp"):
                     bgpInfo = {}
                     bgpInfo['Key'] = info['site']
                     bgpInfo['Status_code'] = api.reqstatus_code
