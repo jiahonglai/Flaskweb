@@ -1,3 +1,7 @@
+import gevent
+from gevent import monkey
+
+monkey.patch_all()
 import urllib3
 
 urllib3.disable_warnings()
@@ -21,7 +25,8 @@ class API:
             'zh-CN,zh;q=0.9',
             'cache-control':
             'max-age=0',
-            'Connection': 'keep-alive',
+            'Connection':
+            'keep-alive',
             'accept':
             'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8'
         }
@@ -154,30 +159,30 @@ class API:
 
             self.begintime = str(datetime.now())
             print(self.begintime, " get ", self.fullpath)
-            with s.get(fullReqPath,
-                       headers=self.headers,
-                       verify=False,
-                       stream=True,
-                       timeout=360) as req:
-                self.resp = req.text.replace('\n', ' ').replace('\t',
-                                                                ' ').replace(
-                                                                    '\r', ' ')
-                self.reqstatus_code = req.status_code
-                self.endtime = str(datetime.now())
+            with gevent.Timeout(100, False): #设置请求总时间
+                with s.get(fullReqPath,
+                           headers=self.headers,
+                           verify=False,
+                           stream=True,
+                           timeout=(10, None)) as req: #timeout(连接时间,读取时间(一般指的是服务器发送第一个字节之前的时间))
+                    self.resp = req.text.replace('\n', ' ').replace(
+                        '\t', ' ').replace('\r', ' ')
+                    self.reqstatus_code = req.status_code
+                    self.endtime = str(datetime.now())
         else:  # post
             if 'sharktech.net' in self.url or 'https://alice.ja.net' in self.url or 'http://lg.sentrian.net.au' in self.url or 'https://lg.launtel.net.au' in self.url:  # 字符串做postData，特殊处理
                 self.data = str(self.data).replace("'", '"')
             self.fullpath = self.reqPath + str(self.data)
             self.begintime = str(datetime.now())
             print(self.begintime, " post ", self.fullpath)
-            with s.post(self.reqPath,
-                        self.data,
-                        headers=self.headers,
-                        verify=False,
-                        stream=True,
-                        timeout=360) as req:
-                self.resp = req.text.replace('\n', ' ').replace('\t',
-                                                                ' ').replace(
-                                                                    '\r', ' ')
-                self.reqstatus_code = req.status_code
-                self.endtime = str(datetime.now())
+            with gevent.Timeout(100, False): #设置请求总时间
+                with s.post(self.reqPath,
+                            self.data,
+                            headers=self.headers,
+                            verify=False,
+                            stream=True,
+                            timeout=(10, None)) as req: #timeout(连接时间,读取时间(一般指的是服务器发送第一个字节之前的时间))
+                    self.resp = req.text.replace('\n', ' ').replace(
+                        '\t', ' ').replace('\r', ' ')
+                    self.reqstatus_code = req.status_code
+                    self.endtime = str(datetime.now())

@@ -199,7 +199,7 @@ def query():
             lastQueryTime = datetime.strptime(record[0], "%Y-%m-%d %H:%M:%S")
             secondDelta = nowTime - lastQueryTime
             if (secondDelta.seconds < deltaTime):
-                return jsonify({'Info': '两次查询间隔应大于60秒'})
+                return jsonify({'Info': '两次查询间隔应大于' + str(deltaTime) + '秒'})
 
             dayDelta = nowTime.date() - lastQueryTime.date()
             if (dayDelta.days > 0):
@@ -245,6 +245,7 @@ def query():
             content += "URL: &nbsp" + info['site']
             content += "&nbsp&nbsp&nbsp router: &nbsp" + info[
                 'routerValue'] + '<br><br>'
+
             if (data['type'] == "raw"):
                 content += api.resp
             else:

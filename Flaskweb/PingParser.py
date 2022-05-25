@@ -67,22 +67,21 @@ class PingParser:
             return str(successRate) + "%"
 
         successFlag = True
-        successRate = re.findall("Success rate is (\d+)", doc)
+        successRate = re.findall("Success rate is ([0-9]+\.?[0-9]*)", doc)
         if (successRate == []):
-            successRate = re.findall("(\d+) packet loss[^\d]", doc)
+            successRate = re.findall("([0-9]+\.?[0-9]*) packet loss[^\d]", doc)
             successFlag = False
         if (successRate == []):
-            successRate = re.findall("packet loss (\d+) min", doc)
+            successRate = re.findall("packet loss ([0-9]+\.?[0-9]*) min", doc)
             successFlag = False
         if (successRate == []):
-            successRate = re.findall("(\d+) loss", doc)
+            successRate = re.findall("([0-9]+\.?[0-9]*) loss", doc)
             successFlag = False
         if (successRate == []):
             return ""
-        if (successFlag):
-            successRate = successRate[0]
-        else:
-            successRate = 100 - int(successRate[0])
+        successRate = int(float(successRate[0]))
+        if (successFlag == False):
+            successRate = 100 - successRate
         return str(successRate) + "%"
 
     @staticmethod
@@ -136,7 +135,6 @@ class PingParser:
         if (info['status_code'] != 200):
             return "Request Failure"
         doc = PingParser.filter(info['resp'])
-        print(doc)
 
         totalPacket = PingParser.getTotalPacket(doc)
 
