@@ -125,9 +125,9 @@ class PingParser:
         for index, value in enumerate(RTT):
             RTT[index] += ' ms'
         tmp = RTT
-        RTT = {'min': tmp[0], 'avg': tmp[1], 'max': tmp[2]}
+        RTT = {'min': tmp[0], 'avg': tmp[1], 'max': tmp[2], 'stddev': ''}
         if (len(tmp) == 4):
-            RTT.update({'stddev': tmp[3]})
+            RTT['stddev'] = tmp[3]
         return RTT
 
     @staticmethod
