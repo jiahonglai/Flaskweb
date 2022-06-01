@@ -131,7 +131,7 @@ visitorNum = 0
 def initialize():
     global visitorNum
     if (os.path.exists("VisitorNumber.txt")):
-        with open("VisitorNumber.txt") as f:
+        with open("VisitorNumber.txt", "r") as f:
             visitorNum = int(f.readline())
 
     with sqlite3.connect("Web.db") as con:
