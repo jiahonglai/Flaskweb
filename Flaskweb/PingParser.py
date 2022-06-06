@@ -2,6 +2,7 @@ import re
 import shelve
 import requests
 from API import API
+import json
 
 
 class PingParser:
@@ -147,7 +148,7 @@ class PingParser:
         result['success rate'] = successRate
         result['RTT'] = RTT
 
-        return str(result)
+        return json.dumps(result)
 
 
 if __name__ == "__main__":
@@ -162,7 +163,7 @@ if __name__ == "__main__":
     exit()
     k = 0
     f = 0
-    with shelve.open("LGData", "r") as db:  #必须以只读方式，否则多用户会报错
+    with shelve.open("LGData", "r") as db:
         for key in db:
             f += 1
             record = db[key]

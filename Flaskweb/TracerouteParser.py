@@ -281,7 +281,7 @@ class TracerouteParser:
 
     def parse(self, doc):
         parser = self.selectParser(doc)
-        return str(parser.parse(doc))
+        return json.dumps(parser.parse(doc))
 
 if __name__=="__main__":
     with open("./test.html") as f:

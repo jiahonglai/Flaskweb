@@ -518,4 +518,4 @@ class BGPpathAnalyzer:
         return listbestpath
 
     def getJsonData(self):
-        return str(self.key)
+        return json.dumps(self.key)

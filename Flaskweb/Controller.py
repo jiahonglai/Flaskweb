@@ -12,6 +12,7 @@ import urllib3
 urllib3.disable_warnings()
 from datetime import datetime, date
 from API import API
+from PingParser import PingParser
 from ShowBGPAnalyzer import BGPpathAnalyzer
 from TracerouteParser import TracerouteParser
 
@@ -144,9 +145,10 @@ def initialize():
 
 @app.before_request
 def countVisitor():
+    print(request.headers.get('X-Forwarded-For'))
     global visitorNum
     with sqlite3.connect("Web.db") as con:
-        IP = request.remote_addr
+        IP = request.headers.get('X-Forwarded-For')
         record = con.execute("SELECT last_visit_time FROM visitor WHERE IP=?",
                              (IP, )).fetchone()
         nowTime = datetime.now().replace(microsecond=0)
@@ -187,7 +189,7 @@ def query():
     data = request.get_json()
     keys = data['keys']
     with sqlite3.connect("Web.db") as con:
-        IP = request.remote_addr
+        IP = request.headers.get('X-Forwarded-For')
         record = con.execute(
             "SELECT last_query_time, query_number FROM visitor WHERE IP=?",
             (IP, )).fetchone()
@@ -197,7 +199,7 @@ def query():
             lastQueryTime = datetime.strptime(record[0], "%Y-%m-%d %H:%M:%S")
             secondDelta = nowTime - lastQueryTime
             if (secondDelta.seconds < deltaTime):
-                return jsonify({'Info': '两次查询间隔应大于60秒'})
+                return jsonify({'Info': '两次查询间隔应大于' + str(deltaTime) + '秒'})
 
             dayDelta = nowTime.date() - lastQueryTime.date()
             if (dayDelta.days > 0):
@@ -243,10 +245,19 @@ def query():
             content += "URL: &nbsp" + info['site']
             content += "&nbsp&nbsp&nbsp router: &nbsp" + info[
                 'routerValue'] + '<br><br>'
-            if (cmdValue == "ping" or data['type'] == "raw"):
+
+            if (data['type'] == "raw"):
                 content += api.resp
             else:
-                if (cmdValue == "bgp"):
+                if (cmdValue == "ping"):
+                    pingInfo = {
+                        'url': api.url,
+                        'resp': api.resp,
+                        'status_code': api.reqstatus_code
+                    }
+                    pingParser = PingParser()
+                    content += pingParser.parse(pingInfo)
+                elif (cmdValue == "bgp"):
                     bgpInfo = {}
                     bgpInfo['Key'] = info['site']
                     bgpInfo['Status_code'] = api.reqstatus_code
@@ -255,7 +266,7 @@ def query():
                     content += analyzer.getJsonData()
                 elif (cmdValue == "traceroute"):
                     tracerouteParser = TracerouteParser()
-                    content += tracerouteParser.parse(api.resp)
+                    content += str(tracerouteParser.parse(api.resp))
             content += '<hr>'
 
         if (data['showHtml'] == "True"):
@@ -272,6 +283,5 @@ def query():
 
 if __name__ == '__main__':
     initialize()
-    #app.run('0.0.0.0',port=5080)
-    server = pywsgi.WSGIServer(('0.0.0.0', 5080), app)
+    server = pywsgi.WSGIServer(('127.0.0.1', 8000), app)
     server.serve_forever()
